@@ -1,0 +1,2 @@
+[  868174ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:5173/api/v1/ws/info?t=1776737292707:0
+[  873180ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:5173/api/v1/ws/info?t=1776737297717:0

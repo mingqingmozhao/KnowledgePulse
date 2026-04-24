@@ -1,0 +1,101 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]:
+        - text: Knowledge Pulse
+        - heading "知脉" [level=1] [ref=e6]
+        - paragraph [ref=e7]: 把碎片知识整理成可搜索、可协作、可连接的知识网络。
+      - generic [ref=e8]:
+        - strong [ref=e9]: 修复验证
+        - generic [ref=e10]: USER
+        - generic [ref=e11]: kpfix0420user@example.com
+      - navigation [ref=e12]:
+        - button "仪表盘 统计与灵感" [ref=e13] [cursor=pointer]:
+          - strong [ref=e14]: 仪表盘
+          - generic [ref=e15]: 统计与灵感
+        - button "文件与笔记 目录树与笔记库" [ref=e16] [cursor=pointer]:
+          - strong [ref=e17]: 文件与笔记
+          - generic [ref=e18]: 目录树与笔记库
+        - button "知识图谱 关联与脉络" [ref=e19] [cursor=pointer]:
+          - strong [ref=e20]: 知识图谱
+          - generic [ref=e21]: 关联与脉络
+        - button "全文搜索 标题、内容、标签" [ref=e22] [cursor=pointer]:
+          - strong [ref=e23]: 全文搜索
+          - generic [ref=e24]: 标题、内容、标签
+        - button "个人中心 资料与权限" [ref=e25] [cursor=pointer]:
+          - strong [ref=e26]: 个人中心
+          - generic [ref=e27]: 资料与权限
+      - generic [ref=e28]:
+        - button "新建笔记" [ref=e29] [cursor=pointer]:
+          - generic [ref=e30]: 新建笔记
+        - button "打开工作区" [ref=e31] [cursor=pointer]:
+          - generic [ref=e32]: 打开工作区
+    - generic [ref=e33]:
+      - banner [ref=e34]:
+        - generic [ref=e36]:
+          - text: Workspace
+          - heading "文件与笔记" [level=2] [ref=e37]
+        - generic [ref=e38]:
+          - searchbox "搜索标题、内容或标签" [ref=e39]
+          - button "搜索" [ref=e40] [cursor=pointer]
+        - generic [ref=e41]:
+          - button "个人中心" [ref=e42] [cursor=pointer]:
+            - generic [ref=e43]: 个人中心
+          - button "退出" [ref=e44] [cursor=pointer]:
+            - generic [ref=e45]: 退出
+      - main [ref=e46]:
+        - generic [ref=e47]:
+          - generic [ref=e48]:
+            - generic [ref=e49]:
+              - text: Explorer
+              - heading "文件树与知识库" [level=1] [ref=e50]
+              - paragraph [ref=e51]: 在这里维护完整的目录结构、标签云与回收站，让前端操作和后端能力完全对齐。
+            - generic [ref=e52]:
+              - button "新建笔记" [ref=e53] [cursor=pointer]:
+                - generic [ref=e54]: 新建笔记
+              - button "刷新内容" [ref=e55] [cursor=pointer]:
+                - generic [ref=e56]: 刷新内容
+          - generic [ref=e57]:
+            - complementary [ref=e58]:
+              - generic [ref=e59]:
+                - generic [ref=e60]:
+                  - generic [ref=e61]:
+                    - text: Explorer
+                    - heading "文件夹树" [level=3] [ref=e62]
+                  - button "全部" [ref=e63] [cursor=pointer]:
+                    - generic [ref=e64]: 全部
+                - generic [ref=e65]:
+                  - button "新建" [active] [ref=e66] [cursor=pointer]:
+                    - generic [ref=e67]: 新建
+                  - button "子级" [disabled] [ref=e68]:
+                    - generic [ref=e69]: 子级
+                  - button "重命名" [disabled] [ref=e70]:
+                    - generic [ref=e71]: 重命名
+                  - button "删除" [disabled] [ref=e72]:
+                    - generic [ref=e73]: 删除
+                - tree [ref=e74]:
+                  - generic [ref=e76]: No Data
+              - generic [ref=e77]:
+                - generic [ref=e78]:
+                  - generic [ref=e79]:
+                    - text: Tags
+                    - heading "标签云" [level=3] [ref=e80]
+                  - generic [ref=e81]: 0 个主题
+                - generic [ref=e82]: 保存几篇带标签的笔记后，这里会自动长出主题云。
+            - generic [ref=e83]:
+              - generic [ref=e84]:
+                - generic [ref=e85]:
+                  - text: Notebook
+                  - heading "全部笔记" [level=3] [ref=e86]
+                - generic [ref=e87]: 正常笔记 0 篇 / 回收站 0 篇
+              - generic [ref=e88]:
+                - tablist [ref=e92]:
+                  - tab "笔记列表" [selected] [ref=e94]
+                  - tab "回收站" [ref=e95] [cursor=pointer]
+                - tabpanel "笔记列表" [ref=e97]:
+                  - generic [ref=e98]:
+                    - strong [ref=e99]: 当前目录下还没有笔记
+                    - generic [ref=e100]: 点击“新建笔记”开始记录，或切换到其它文件夹查看已有内容。
+  - alert [ref=e122]:
+    - img [ref=e124]
+    - paragraph [ref=e126]: Network Error

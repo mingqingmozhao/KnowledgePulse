@@ -1,0 +1,127 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]:
+        - text: Knowledge Pulse
+        - heading "知脉" [level=1] [ref=e6]
+        - paragraph [ref=e7]: 把碎片知识整理成可搜索、可协作、可连接的知识网络。
+      - generic [ref=e8]:
+        - strong [ref=e9]: ahy
+        - generic [ref=e10]: USER
+        - generic [ref=e11]: 1400742102@qq.com
+      - navigation [ref=e12]:
+        - button "仪表盘 统计与灵感" [ref=e13] [cursor=pointer]:
+          - strong [ref=e14]: 仪表盘
+          - generic [ref=e15]: 统计与灵感
+        - button "文件与笔记 目录树与笔记库" [ref=e16] [cursor=pointer]:
+          - strong [ref=e17]: 文件与笔记
+          - generic [ref=e18]: 目录树与笔记库
+        - button "知识图谱 关联与脉络" [ref=e19] [cursor=pointer]:
+          - strong [ref=e20]: 知识图谱
+          - generic [ref=e21]: 关联与脉络
+        - button "全文搜索 标题、内容、标签" [ref=e22] [cursor=pointer]:
+          - strong [ref=e23]: 全文搜索
+          - generic [ref=e24]: 标题、内容、标签
+        - button "个人中心 资料与权限" [ref=e25] [cursor=pointer]:
+          - strong [ref=e26]: 个人中心
+          - generic [ref=e27]: 资料与权限
+      - generic [ref=e28]:
+        - button "新建笔记" [ref=e29] [cursor=pointer]:
+          - generic [ref=e30]: 新建笔记
+        - button "打开工作区" [ref=e31] [cursor=pointer]:
+          - generic [ref=e32]: 打开工作区
+    - generic [ref=e33]:
+      - banner [ref=e34]:
+        - generic [ref=e36]:
+          - text: Workspace
+          - heading "知识图谱" [level=2] [ref=e37]
+        - generic [ref=e38]:
+          - searchbox "搜索标题、内容或标签" [ref=e39]
+          - button "搜索" [ref=e40] [cursor=pointer]
+        - generic [ref=e41]:
+          - button "个人中心" [ref=e42] [cursor=pointer]:
+            - generic [ref=e43]: 个人中心
+          - button "退出" [ref=e44] [cursor=pointer]:
+            - generic [ref=e45]: 退出
+      - main [ref=e46]:
+        - generic [ref=e47]:
+          - generic [ref=e48]:
+            - generic [ref=e49]:
+              - text: Graph
+              - heading "全局知识图谱" [level=1] [ref=e50]
+              - paragraph [ref=e51]: 用力导向图观察笔记之间的引用、扩展与相关关系，点击节点可直接跳回对应笔记。
+            - button "刷新图谱" [ref=e53] [cursor=pointer]:
+              - generic [ref=e54]: 刷新图谱
+          - complementary [ref=e56]:
+            - generic [ref=e57]:
+              - generic [ref=e58]: Scope
+              - heading "聚焦视图" [level=3] [ref=e59]
+              - generic [ref=e60]:
+                - generic [ref=e62]:
+                  - generic:
+                    - combobox [ref=e64]
+                    - generic [ref=e65]: 搜索一篇笔记后聚焦图谱
+                  - img [ref=e68] [cursor=pointer]
+                - generic [ref=e70]: 按文件夹分组浏览，共 2 个分组；可输入标题、标签、文件夹或 ID 快速定位
+              - button "应用筛选" [ref=e71] [cursor=pointer]:
+                - generic [ref=e72]: 应用筛选
+            - generic [ref=e73]:
+              - generic [ref=e74]: Relation
+              - heading "添加关联关系" [level=3] [ref=e75]
+              - generic [ref=e76]:
+                - generic [ref=e77]:
+                  - generic [ref=e78]: 起点笔记
+                  - generic [ref=e80]:
+                    - generic [ref=e82]:
+                      - generic:
+                        - combobox "起点笔记" [ref=e84]
+                        - generic [ref=e85]: 搜索起点笔记
+                      - img [ref=e88] [cursor=pointer]
+                    - generic [ref=e90]: 按文件夹分组浏览，共 2 个分组；可输入标题、标签、文件夹或 ID 快速定位
+                - generic [ref=e91]:
+                  - generic [ref=e92]: 目标笔记
+                  - generic [ref=e94]:
+                    - generic [ref=e96]:
+                      - generic [ref=e131]:
+                        - combobox "目标笔记" [expanded] [active] [ref=e98]
+                        - generic [ref=e99]: 搜索目标笔记
+                      - img [ref=e102] [cursor=pointer]
+                    - generic [ref=e104]: 按文件夹分组浏览，共 2 个分组；可输入标题、标签、文件夹或 ID 快速定位
+                - generic [ref=e105]:
+                  - generic [ref=e106]: 关系类型
+                  - generic [ref=e109] [cursor=pointer]:
+                    - generic:
+                      - combobox "关系类型" [ref=e111]
+                      - generic [ref=e112]: 相关
+                    - img [ref=e115]
+              - button "添加关联" [ref=e117] [cursor=pointer]:
+                - generic [ref=e118]: 添加关联
+            - generic [ref=e119]:
+              - generic [ref=e120]: Legend
+              - heading "使用说明" [level=3] [ref=e121]
+              - list [ref=e122]:
+                - listitem [ref=e123]: 绿色中心节点代表当前聚焦的主笔记。
+                - listitem [ref=e124]: 铜色节点表示与之关联的其他知识片段。
+                - listitem [ref=e125]: 边标签显示“引用 / 扩展 / 相关”等关系类型。
+  - tooltip [ref=e132]:
+    - listbox [ref=e136]:
+      - list [ref=e137]:
+        - listitem [ref=e138]: 文件夹2 · 1 篇
+        - listitem [ref=e139]:
+          - list [ref=e140]:
+            - 'option "AIstudy #6 · AI · 更新 8 小时前" [ref=e141] [cursor=pointer]':
+              - generic [ref=e142]:
+                - strong [ref=e143]: AIstudy
+                - generic [ref=e144]: "#6 · AI · 更新 8 小时前"
+      - list [ref=e145]:
+        - listitem [ref=e146]: 文件夹1 · 2 篇
+        - listitem [ref=e147]:
+          - list [ref=e148]:
+            - 'option "设计2 #4 · 设计 · 更新 9 小时前" [ref=e149] [cursor=pointer]':
+              - generic [ref=e150]:
+                - strong [ref=e151]: 设计2
+                - generic [ref=e152]: "#4 · 设计 · 更新 9 小时前"
+            - 'option "权限设计 #3 · 设计 · 更新 10 小时前" [ref=e153] [cursor=pointer]':
+              - generic [ref=e154]:
+                - strong [ref=e155]: 权限设计
+                - generic [ref=e156]: "#3 · 设计 · 更新 10 小时前"

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ahy.knowledgepulse.mapper.NoteFavoriteMapper">
+
+    <select id="findByUserId" resultType="com.ahy.knowledgepulse.entity.NoteFavorite">
+        SELECT *
+        FROM note_favorite
+        WHERE user_id = #{userId}
+        ORDER BY create_time DESC, id DESC
+    </select>
+
+    <select id="findByNoteIdAndUserId" resultType="com.ahy.knowledgepulse.entity.NoteFavorite">
+        SELECT *
+        FROM note_favorite
+        WHERE note_id = #{noteId}
+          AND user_id = #{userId}
+        LIMIT 1
+    </select>
+
+    <delete id="deleteByNoteId">
+        DELETE FROM note_favorite
+        WHERE note_id = #{noteId}
+    </delete>
+
+    <delete id="deleteByNoteIdAndUserId">
+        DELETE FROM note_favorite
+        WHERE note_id = #{noteId}
+          AND user_id = #{userId}
+    </delete>
+
+</mapper>

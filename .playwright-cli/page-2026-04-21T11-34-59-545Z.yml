@@ -1,0 +1,123 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e45]:
+    - complementary [ref=e46]:
+      - generic [ref=e47]:
+        - text: Knowledge Pulse
+        - heading "知脉" [level=1] [ref=e48]
+        - paragraph [ref=e49]: 把碎片知识整理成可搜索、可协作、可连接的知识网络。
+      - generic [ref=e50]:
+        - strong [ref=e51]: ahy
+        - generic [ref=e52]: USER
+        - generic [ref=e53]: 1400742102@qq.com
+      - navigation [ref=e54]:
+        - button "仪表盘 统计与灵感" [ref=e55] [cursor=pointer]:
+          - strong [ref=e56]: 仪表盘
+          - generic [ref=e57]: 统计与灵感
+        - button "文件与笔记 目录树与笔记库" [ref=e58] [cursor=pointer]:
+          - strong [ref=e59]: 文件与笔记
+          - generic [ref=e60]: 目录树与笔记库
+        - button "知识图谱 关联与脉络" [ref=e61] [cursor=pointer]:
+          - strong [ref=e62]: 知识图谱
+          - generic [ref=e63]: 关联与脉络
+        - button "全文搜索 标题、内容、标签" [ref=e64] [cursor=pointer]:
+          - strong [ref=e65]: 全文搜索
+          - generic [ref=e66]: 标题、内容、标签
+        - button "个人中心 资料与权限" [ref=e67] [cursor=pointer]:
+          - strong [ref=e68]: 个人中心
+          - generic [ref=e69]: 资料与权限
+      - generic [ref=e70]:
+        - button "新建笔记" [ref=e71] [cursor=pointer]:
+          - generic [ref=e72]: 新建笔记
+        - button "打开工作区" [ref=e73] [cursor=pointer]:
+          - generic [ref=e74]: 打开工作区
+    - generic [ref=e75]:
+      - banner [ref=e76]:
+        - generic [ref=e78]:
+          - text: Workspace
+          - heading "仪表盘" [level=2] [ref=e79]
+        - generic [ref=e80]:
+          - searchbox "搜索标题、内容或标签" [ref=e81]
+          - button "搜索" [ref=e82] [cursor=pointer]
+        - generic [ref=e83]:
+          - button "个人中心" [ref=e84] [cursor=pointer]:
+            - generic [ref=e85]: 个人中心
+          - button "退出" [ref=e86] [cursor=pointer]:
+            - generic [ref=e87]: 退出
+      - main [ref=e88]:
+        - generic [ref=e89]:
+          - generic [ref=e90]:
+            - generic [ref=e91]:
+              - text: Dashboard
+              - heading "知识工作台总览" [level=1] [ref=e92]
+              - paragraph [ref=e93]: 从标签分布、编辑热力、灵感推荐和最近笔记四个维度，快速掌握你的知识沉淀状态。
+            - generic [ref=e94]:
+              - button "新建笔记" [ref=e95] [cursor=pointer]:
+                - generic [ref=e96]: 新建笔记
+              - button "打开文件与笔记" [ref=e97] [cursor=pointer]:
+                - generic [ref=e98]: 打开文件与笔记
+          - generic [ref=e99]:
+            - article [ref=e100]:
+              - generic [ref=e101]: 笔记总数
+              - strong [ref=e102]: "3"
+              - generic [ref=e103]: 持续沉淀的知识条目
+            - article [ref=e104]:
+              - generic [ref=e105]: 文件夹总数
+              - strong [ref=e106]: "9"
+              - generic [ref=e107]: 帮助你构建清晰目录
+            - article [ref=e108]:
+              - generic [ref=e109]: 标签数量
+              - strong [ref=e110]: "2"
+              - generic [ref=e111]: 标记高频主题和关键词
+          - generic [ref=e112]:
+            - article [ref=e113]:
+              - generic [ref=e114]:
+                - generic [ref=e115]:
+                  - text: Tag Radar
+                  - heading "标签分布" [level=3] [ref=e116]
+                - generic [ref=e117]: 高频主题会自然形成你的知识主轴
+            - article [ref=e122]:
+              - generic [ref=e123]:
+                - generic [ref=e124]:
+                  - text: Edit Pulse
+                  - heading "编辑热力图" [level=3] [ref=e125]
+                - generic [ref=e126]: 记录你的知识活跃区间
+          - generic [ref=e131]:
+            - article [ref=e132]:
+              - generic [ref=e133]:
+                - generic [ref=e134]:
+                  - text: Inspiration
+                  - heading "每日灵感推荐" [level=3] [ref=e135]
+                - generic [ref=e136]: 基于近 7 天编辑标签生成
+              - generic [ref=e137]:
+                - blockquote [ref=e138]: A small note captured today saves a long search tomorrow.
+                - generic [ref=e139]:
+                  - generic [ref=e141]: "#AI"
+                  - generic [ref=e143]: "#设计"
+                - generic [ref=e144]:
+                  - generic [ref=e145]: 2026/04/21
+                  - generic [ref=e146]: 关联笔记 3 篇
+            - article [ref=e147]:
+              - generic [ref=e148]:
+                - generic [ref=e149]:
+                  - text: Recent Notes
+                  - heading "最近更新" [level=3] [ref=e150]
+                - generic [ref=e151]: 快速返回正在推进的内容
+              - generic [ref=e152]:
+                - button "AIstudy 文件夹2 8 小时前" [ref=e153] [cursor=pointer]:
+                  - generic [ref=e154]:
+                    - strong [ref=e155]: AIstudy
+                    - text: 文件夹2
+                  - generic [ref=e156]: 8 小时前
+                - button "设计2 文件夹1 9 小时前" [ref=e157] [cursor=pointer]:
+                  - generic [ref=e158]:
+                    - strong [ref=e159]: 设计2
+                    - text: 文件夹1
+                  - generic [ref=e160]: 9 小时前
+                - button "权限设计 文件夹1 10 小时前" [ref=e161] [cursor=pointer]:
+                  - generic [ref=e162]:
+                    - strong [ref=e163]: 权限设计
+                    - text: 文件夹1
+                  - generic [ref=e164]: 10 小时前
+  - alert [ref=e165]:
+    - img [ref=e167]
+    - paragraph [ref=e169]: 欢迎回来，工作台已准备好

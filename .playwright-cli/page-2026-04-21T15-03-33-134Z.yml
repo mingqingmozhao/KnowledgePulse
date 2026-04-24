@@ -1,0 +1,193 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e45]:
+    - complementary [ref=e46]:
+      - generic [ref=e47]:
+        - text: Knowledge Pulse
+        - heading "知脉" [level=1] [ref=e48]
+        - paragraph [ref=e49]: 把碎片知识整理成可搜索、可协作、可连接的知识网络。
+      - generic [ref=e50]:
+        - strong [ref=e51]: ahy
+        - generic [ref=e52]: USER
+        - generic [ref=e53]: 1400742102@qq.com
+      - navigation [ref=e54]:
+        - button "仪表盘 统计与灵感" [ref=e55] [cursor=pointer]:
+          - strong [ref=e56]: 仪表盘
+          - generic [ref=e57]: 统计与灵感
+        - button "文件与笔记 目录树与笔记库" [ref=e58] [cursor=pointer]:
+          - strong [ref=e59]: 文件与笔记
+          - generic [ref=e60]: 目录树与笔记库
+        - button "知识图谱 关联与脉络" [ref=e61] [cursor=pointer]:
+          - strong [ref=e62]: 知识图谱
+          - generic [ref=e63]: 关联与脉络
+        - button "全文搜索 标题、内容、标签" [ref=e64] [cursor=pointer]:
+          - strong [ref=e65]: 全文搜索
+          - generic [ref=e66]: 标题、内容、标签
+        - button "个人中心 资料与权限" [ref=e67] [cursor=pointer]:
+          - strong [ref=e68]: 个人中心
+          - generic [ref=e69]: 资料与权限
+      - generic [ref=e70]:
+        - button "新建笔记" [ref=e71] [cursor=pointer]:
+          - generic [ref=e72]: 新建笔记
+        - button "打开工作区" [ref=e73] [cursor=pointer]:
+          - generic [ref=e74]: 打开工作区
+    - generic [ref=e75]:
+      - banner [ref=e76]:
+        - generic [ref=e78]:
+          - text: Workspace
+          - heading "文件与笔记" [level=2] [ref=e79]
+        - generic [ref=e80]:
+          - searchbox "搜索标题、内容或标签" [ref=e81]
+          - button "搜索" [ref=e82] [cursor=pointer]
+        - generic [ref=e83]:
+          - button "个人中心" [ref=e84] [cursor=pointer]:
+            - generic [ref=e85]: 个人中心
+          - button "退出" [ref=e86] [cursor=pointer]:
+            - generic [ref=e87]: 退出
+      - main [ref=e88]:
+        - generic [ref=e89]:
+          - generic [ref=e90]:
+            - generic [ref=e91]:
+              - text: Explorer
+              - heading "文件树与知识库" [level=1] [ref=e92]
+              - paragraph [ref=e93]: 在这里维护完整的目录结构、标签云与回收站，让前端操作和后端能力完全对齐。
+            - generic [ref=e94]:
+              - button "新建笔记" [ref=e95] [cursor=pointer]:
+                - generic [ref=e96]: 新建笔记
+              - button "刷新内容" [ref=e97] [cursor=pointer]:
+                - generic [ref=e98]: 刷新内容
+          - generic [ref=e99]:
+            - complementary [ref=e100]:
+              - generic [ref=e101]:
+                - generic [ref=e102]:
+                  - generic [ref=e103]:
+                    - text: Explorer
+                    - heading "文件夹树" [level=3] [ref=e104]
+                    - generic [ref=e105]: 共 9 个文件夹
+                  - generic [ref=e106]:
+                    - button "全部" [ref=e107] [cursor=pointer]:
+                      - generic [ref=e108]: 全部
+                    - button "-" [expanded] [ref=e109] [cursor=pointer]
+                - generic [ref=e110]:
+                  - generic [ref=e111]:
+                    - button "新建" [ref=e112] [cursor=pointer]:
+                      - generic [ref=e113]: 新建
+                    - button "子级" [disabled] [ref=e114]:
+                      - generic [ref=e115]: 子级
+                    - button "重命名" [disabled] [ref=e116]:
+                      - generic [ref=e117]: 重命名
+                    - button "删除" [disabled] [ref=e118]:
+                      - generic [ref=e119]: 删除
+                  - generic [ref=e120]:
+                    - textbox "输入名称快速查找文件夹" [ref=e123]
+                    - generic [ref=e124]: 9 / 9
+                  - generic [ref=e125]:
+                    - generic [ref=e126]: 默认仅展开当前路径
+                    - generic [ref=e127]:
+                      - button "展开全部" [ref=e128] [cursor=pointer]:
+                        - generic [ref=e129]: 展开全部
+                      - button "收起层级" [disabled] [ref=e130]:
+                        - generic [ref=e131]: 收起层级
+                  - tree [ref=e132]:
+                    - treeitem "文件夹1 2" [ref=e133]:
+                      - generic [ref=e135] [cursor=pointer]:
+                        - generic [ref=e136]: 文件夹1
+                        - generic [ref=e137]: "2"
+                    - treeitem "文件夹2 1" [ref=e138]:
+                      - generic [ref=e140] [cursor=pointer]:
+                        - generic [ref=e141]: 文件夹2
+                        - generic [ref=e142]: "1"
+                    - treeitem "文件夹3 0" [ref=e143]:
+                      - generic [ref=e145] [cursor=pointer]:
+                        - generic [ref=e146]: 文件夹3
+                        - generic [ref=e147]: "0"
+                    - treeitem "文件夹4 0" [ref=e148]:
+                      - generic [ref=e150] [cursor=pointer]:
+                        - generic [ref=e151]: 文件夹4
+                        - generic [ref=e152]: "0"
+                    - treeitem "文件夹5 0" [ref=e153]:
+                      - generic [ref=e155] [cursor=pointer]:
+                        - generic [ref=e156]: 文件夹5
+                        - generic [ref=e157]: "0"
+                    - treeitem "文件夹6 0" [ref=e158]:
+                      - generic [ref=e160] [cursor=pointer]:
+                        - generic [ref=e161]: 文件夹6
+                        - generic [ref=e162]: "0"
+                    - treeitem "文件夹7 0" [ref=e163]:
+                      - generic [ref=e165] [cursor=pointer]:
+                        - generic [ref=e166]: 文件夹7
+                        - generic [ref=e167]: "0"
+                    - treeitem "文件夹8 0" [ref=e168]:
+                      - generic [ref=e170] [cursor=pointer]:
+                        - generic [ref=e171]: 文件夹8
+                        - generic [ref=e172]: "0"
+                    - treeitem "文件夹9 0" [ref=e173]:
+                      - generic [ref=e175] [cursor=pointer]:
+                        - generic [ref=e176]: 文件夹9
+                        - generic [ref=e177]: "0"
+              - generic [ref=e179]:
+                - generic [ref=e180]:
+                  - text: Tags
+                  - heading "标签云" [level=3] [ref=e181]
+                  - generic [ref=e182]: 2 个主题
+                - button "+" [ref=e184] [cursor=pointer]
+            - generic [ref=e185]:
+              - generic [ref=e186]:
+                - generic [ref=e187]:
+                  - text: Notebook
+                  - heading "全部笔记" [level=3] [ref=e188]
+                  - generic [ref=e189]: 正常笔记 3 篇 / 回收站 1 篇
+                - button "-" [expanded] [ref=e191] [cursor=pointer]
+              - generic [ref=e193]:
+                - tablist [ref=e197]:
+                  - tab "笔记列表" [selected] [ref=e199]
+                  - tab "回收站" [ref=e200]
+                - tabpanel "笔记列表" [ref=e202]:
+                  - generic [ref=e203]:
+                    - article [ref=e204]:
+                      - generic [ref=e205]:
+                        - generic [ref=e206]:
+                          - strong [ref=e207]: AIstudy
+                          - text: 文件夹2
+                        - generic [ref=e208]: 12 小时前
+                      - paragraph [ref=e209]: 新笔记1 从这里开始整理你的思路。AI
+                      - button "#AI" [ref=e211] [cursor=pointer]
+                      - generic [ref=e212]:
+                        - generic [ref=e213]: 最后更新：04/21 10:42
+                        - generic [ref=e214]:
+                          - button "编辑" [ref=e215] [cursor=pointer]:
+                            - generic [ref=e216]: 编辑
+                          - button "移入回收站" [ref=e217] [cursor=pointer]:
+                            - generic [ref=e218]: 移入回收站
+                    - article [ref=e219]:
+                      - generic [ref=e220]:
+                        - generic [ref=e221]:
+                          - strong [ref=e222]: 设计2
+                          - text: 文件夹1
+                        - generic [ref=e223]: 13 小时前
+                      - paragraph [ref=e224]: 新笔记2 从这里开始整理你的思路。2121211qwe正文 我
+                      - button "#设计" [ref=e226] [cursor=pointer]
+                      - generic [ref=e227]:
+                        - generic [ref=e228]: 最后更新：04/21 09:37
+                        - generic [ref=e229]:
+                          - button "编辑" [ref=e230] [cursor=pointer]:
+                            - generic [ref=e231]: 编辑
+                          - button "移入回收站" [ref=e232] [cursor=pointer]:
+                            - generic [ref=e233]: 移入回收站
+                    - article [ref=e234]:
+                      - generic [ref=e235]:
+                        - generic [ref=e236]:
+                          - strong [ref=e237]: 权限设计
+                          - text: 文件夹1
+                        - generic [ref=e238]: 14 小时前
+                      - paragraph [ref=e239]: 权限设计之路 从这里开始构建你的知识脉络。从零开始的
+                      - button "#设计" [ref=e241] [cursor=pointer]
+                      - generic [ref=e242]:
+                        - generic [ref=e243]: 最后更新：04/21 09:03
+                        - generic [ref=e244]:
+                          - button "编辑" [ref=e245] [cursor=pointer]:
+                            - generic [ref=e246]: 编辑
+                          - button "移入回收站" [ref=e247] [cursor=pointer]:
+                            - generic [ref=e248]: 移入回收站
+  - alert [ref=e249]:
+    - img [ref=e251]
+    - paragraph [ref=e253]: 欢迎回来，工作台已准备好

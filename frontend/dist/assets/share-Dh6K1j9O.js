@@ -1,0 +1,1 @@
+import{g as a,p as t,d as n}from"./index-BRt9is2G.js";function s(e,r){return t(`/share/${e}`,r)}function i(e,r){return a(`/share/public/${e}`,{params:r?{password:r}:void 0})}function u(e){return n(`/share/${e}`)}export{s as a,i as g,u as r};

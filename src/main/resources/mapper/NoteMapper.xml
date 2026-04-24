@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ahy.knowledgepulse.mapper.NoteMapper">
+
+    <select id="findByUserId" resultType="com.ahy.knowledgepulse.entity.Note">
+        SELECT * FROM note
+        WHERE user_id = #{userId}
+          AND is_deleted = 0
+        ORDER BY update_time DESC
+    </select>
+
+    <select id="findAccessibleNotes" resultType="com.ahy.knowledgepulse.entity.Note">
+        SELECT DISTINCT n.* FROM note n
+        LEFT JOIN note_collaborator nc ON n.id = nc.note_id
+        WHERE n.is_deleted = 0
+          AND (n.user_id = #{userId} OR nc.user_id = #{userId})
+        ORDER BY n.update_time DESC
+    </select>
+
+    <select id="findAnyByUserIdAndDailyNoteDate" resultType="com.ahy.knowledgepulse.entity.Note">
+        SELECT * FROM note
+        WHERE user_id = #{userId}
+          AND daily_note_date = #{dailyNoteDate}
+        LIMIT 1
+    </select>
+
+    <select id="findDailyNotesByUserAndRange" resultType="com.ahy.knowledgepulse.entity.Note">
+        SELECT * FROM note
+        WHERE user_id = #{userId}
+          AND is_deleted = 0
+          AND daily_note_date IS NOT NULL
+          AND daily_note_date &gt;= #{startDate}
+          AND daily_note_date &lt;= #{endDate}
+        ORDER BY daily_note_date ASC, update_time DESC
+    </select>
+
+    <select id="findByFolderId" resultType="com.ahy.knowledgepulse.entity.Note">
+        SELECT * FROM note
+        WHERE folder_id = #{folderId}
+          AND is_deleted = 0
+        ORDER BY update_time DESC
+    </select>
+
+    <select id="findByUserIdAndFolderId" resultType="com.ahy.knowledgepulse.entity.Note">
+        SELECT * FROM note
+        WHERE user_id = #{userId}
+          AND folder_id = #{folderId}
+          AND is_deleted = 0
+        ORDER BY update_time DESC
+    </select>
+
+    <select id="searchNotes" resultType="com.ahy.knowledgepulse.entity.Note">
+        SELECT * FROM note
+        WHERE user_id = #{userId}
+          AND is_deleted = 0
+          AND (title LIKE CONCAT('%', #{keyword}, '%')
+            OR content LIKE CONCAT('%', #{keyword}, '%')
+            OR tags LIKE CONCAT('%', #{keyword}, '%'))
+        ORDER BY update_time DESC
+    </select>
+
+    <select id="searchAccessibleNotes" resultType="com.ahy.knowledgepulse.entity.Note">
+        SELECT DISTINCT n.* FROM note n
+        LEFT JOIN note_collaborator nc ON n.id = nc.note_id
+        WHERE n.is_deleted = 0
+          AND (n.user_id = #{userId} OR nc.user_id = #{userId})
+          AND (n.title LIKE CONCAT('%', #{keyword}, '%')
+            OR n.content LIKE CONCAT('%', #{keyword}, '%')
+            OR n.tags LIKE CONCAT('%', #{keyword}, '%'))
+        ORDER BY update_time DESC
+    </select>
+
+    <select id="findByTag" resultType="com.ahy.knowledgepulse.entity.Note">
+        SELECT n.* FROM note n
+        JOIN note_tag t ON n.id = t.note_id
+        WHERE n.user_id = #{userId}
+          AND n.is_deleted = 0
+          AND t.tag_name = #{tagName}
+        ORDER BY n.update_time DESC
+    </select>
+
+    <select id="findPublicNotes" resultType="com.ahy.knowledgepulse.entity.Note">
+        SELECT * FROM note
+        WHERE is_public = 1
+          AND is_deleted = 0
+        ORDER BY update_time DESC
+    </select>
+
+    <select id="findByShareToken" resultType="com.ahy.knowledgepulse.entity.Note">
+        SELECT * FROM note
+        WHERE share_token = #{shareToken}
+          AND is_deleted = 0
+    </select>
+
+    <select id="findRecentNotes" resultType="com.ahy.knowledgepulse.entity.Note">
+        SELECT * FROM note
+        WHERE user_id = #{userId}
+          AND is_deleted = 0
+          AND update_time >= #{startTime}
+        ORDER BY update_time DESC
+    </select>
+
+    <select id="findNotesWithTag" resultType="com.ahy.knowledgepulse.entity.Note">
+        SELECT DISTINCT n.* FROM note n
+        JOIN note_tag t ON n.id = t.note_id
+        WHERE n.user_id = #{userId}
+          AND n.is_deleted = 0
+          AND t.tag_name LIKE CONCAT('%', #{tagName}, '%')
+        ORDER BY n.update_time DESC
+    </select>
+
+    <select id="findAccessibleNotesWithTag" resultType="com.ahy.knowledgepulse.entity.Note">
+        SELECT DISTINCT n.* FROM note n
+        LEFT JOIN note_collaborator nc ON n.id = nc.note_id
+        JOIN note_tag t ON n.id = t.note_id
+        WHERE n.is_deleted = 0
+          AND (n.user_id = #{userId} OR nc.user_id = #{userId})
+          AND t.tag_name LIKE CONCAT('%', #{tagName}, '%')
+        ORDER BY n.update_time DESC
+    </select>
+
+    <select id="findDeletedByUserId" resultType="com.ahy.knowledgepulse.entity.Note">
+        SELECT * FROM note
+        WHERE user_id = #{userId}
+          AND is_deleted = 1
+        ORDER BY deleted_time DESC, update_time DESC
+    </select>
+
+    <select id="findExpiredDeletedNotes" resultType="com.ahy.knowledgepulse.entity.Note">
+        SELECT * FROM note
+        WHERE is_deleted = 1
+          AND deleted_time IS NOT NULL
+          AND deleted_time &lt;= #{cutoff}
+        ORDER BY deleted_time ASC
+    </select>
+
+    <update id="clearFolderForDeletedNotes">
+        UPDATE note
+        SET folder_id = NULL
+        WHERE user_id = #{userId}
+          AND folder_id = #{folderId}
+          AND is_deleted = 1
+    </update>
+
+</mapper>

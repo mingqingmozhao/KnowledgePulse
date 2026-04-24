@@ -1,0 +1,1 @@
+const o="draft",r="template";function u(){return`draft-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`}function i(t=u(),n){const e={[o]:t};return n&&(e[r]=String(n)),{path:"/note/new",query:e}}function a(t){return`/note/${t}/edit`}function c(t){return t.routeKind==="note"&&t.noteId?a(t.noteId):i(t.key)}export{o as N,c as a,i as b,a as c,r as d};

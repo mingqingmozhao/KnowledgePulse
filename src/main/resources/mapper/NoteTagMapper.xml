@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ahy.knowledgepulse.mapper.NoteTagMapper">
+
+    <select id="findByNoteId" resultType="com.ahy.knowledgepulse.entity.NoteTag">
+        SELECT * FROM note_tag WHERE note_id = #{noteId}
+    </select>
+
+    <select id="findTagsByNoteId" resultType="java.lang.String">
+        SELECT tag_name FROM note_tag WHERE note_id = #{noteId}
+    </select>
+
+    <select id="findByTagName" resultType="com.ahy.knowledgepulse.entity.NoteTag">
+        SELECT * FROM note_tag t
+        JOIN note n ON t.note_id = n.id
+        WHERE n.user_id = #{userId}
+          AND n.is_deleted = 0
+          AND t.tag_name = #{tagName}
+    </select>
+
+    <delete id="deleteByNoteId">
+        DELETE FROM note_tag WHERE note_id = #{noteId}
+    </delete>
+
+    <select id="findAllTagsByUserId" resultType="java.lang.String">
+        SELECT DISTINCT t.tag_name FROM note_tag t
+        JOIN note n ON t.note_id = n.id
+        WHERE n.user_id = #{userId}
+          AND n.is_deleted = 0
+    </select>
+
+    <select id="findTopTagsByUserId" resultType="java.lang.String">
+        SELECT t.tag_name FROM note_tag t
+        JOIN note n ON t.note_id = n.id
+        WHERE n.user_id = #{userId}
+          AND n.is_deleted = 0
+        GROUP BY t.tag_name
+        ORDER BY COUNT(*) DESC
+        LIMIT 10
+    </select>
+
+</mapper>

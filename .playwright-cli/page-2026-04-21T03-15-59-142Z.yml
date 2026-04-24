@@ -1,0 +1,134 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]:
+        - text: Knowledge Pulse
+        - heading "知脉" [level=1] [ref=e6]
+        - paragraph [ref=e7]: 把碎片知识整理成可搜索、可协作、可连接的知识网络。
+      - generic [ref=e8]:
+        - strong [ref=e9]: 修复验证
+        - generic [ref=e10]: USER
+        - generic [ref=e11]: kpfix0420user@example.com
+      - navigation [ref=e12]:
+        - button "仪表盘 统计与灵感" [ref=e13] [cursor=pointer]:
+          - strong [ref=e14]: 仪表盘
+          - generic [ref=e15]: 统计与灵感
+        - button "文件与笔记 目录树与笔记库" [ref=e16] [cursor=pointer]:
+          - strong [ref=e17]: 文件与笔记
+          - generic [ref=e18]: 目录树与笔记库
+        - button "知识图谱 关联与脉络" [ref=e19] [cursor=pointer]:
+          - strong [ref=e20]: 知识图谱
+          - generic [ref=e21]: 关联与脉络
+        - button "全文搜索 标题、内容、标签" [ref=e22] [cursor=pointer]:
+          - strong [ref=e23]: 全文搜索
+          - generic [ref=e24]: 标题、内容、标签
+        - button "个人中心 资料与权限" [ref=e25] [cursor=pointer]:
+          - strong [ref=e26]: 个人中心
+          - generic [ref=e27]: 资料与权限
+      - generic [ref=e28]:
+        - button "新建笔记" [ref=e29] [cursor=pointer]:
+          - generic [ref=e30]: 新建笔记
+        - button "打开工作区" [ref=e31] [cursor=pointer]:
+          - generic [ref=e32]: 打开工作区
+    - generic [ref=e33]:
+      - banner [ref=e34]:
+        - generic [ref=e36]:
+          - text: Workspace
+          - heading "个人中心" [level=2] [ref=e37]
+        - generic [ref=e38]:
+          - searchbox "搜索标题、内容或标签" [ref=e39]
+          - button "搜索" [ref=e40] [cursor=pointer]
+        - generic [ref=e41]:
+          - button "个人中心" [ref=e42] [cursor=pointer]:
+            - generic [ref=e43]: 个人中心
+          - button "退出" [ref=e44] [cursor=pointer]:
+            - generic [ref=e45]: 退出
+      - main [ref=e46]:
+        - generic [ref=e47]:
+          - generic [ref=e48]:
+            - generic [ref=e49]:
+              - text: Profile
+              - heading "个人中心" [level=1] [ref=e50]
+              - paragraph [ref=e51]: 维护头像、昵称、邮箱等资料，让协作时的身份展示更完整、更清晰。
+            - button "保存资料" [ref=e53] [cursor=pointer]:
+              - generic [ref=e54]: 保存资料
+          - generic [ref=e55]:
+            - generic [ref=e56]:
+              - generic [ref=e57]:
+                - img [ref=e137]
+                - generic [ref=e59]:
+                  - generic [ref=e60]: Identity
+                  - heading "修复验证" [level=3] [ref=e61]
+                  - paragraph [ref=e62]: kpfix0420user@example.com
+                  - paragraph [ref=e63]: 已选择默认头像，保存资料后会同步到协作者和个人资料页。
+                  - generic [ref=e64]:
+                    - button "上传头像" [ref=e65] [cursor=pointer]:
+                      - generic [ref=e66]: 上传头像
+                    - button "使用文字头像" [ref=e67] [cursor=pointer]:
+                      - generic [ref=e68]: 使用文字头像
+              - generic [ref=e69]:
+                - generic [ref=e70]:
+                  - generic [ref=e71]:
+                    - text: Avatar
+                    - heading "选择默认头像" [level=3] [ref=e72]
+                  - generic [ref=e73]: 支持本地上传，建议 2MB 以内
+                - generic [ref=e74]:
+                  - button "暖阳 设为默认头像" [ref=e75] [cursor=pointer]:
+                    - img [ref=e77]
+                    - strong [ref=e78]: 暖阳
+                    - generic [ref=e79]: 设为默认头像
+                  - button "青苔 设为默认头像" [ref=e80] [cursor=pointer]:
+                    - img [ref=e82]
+                    - strong [ref=e83]: 青苔
+                    - generic [ref=e84]: 设为默认头像
+                  - button "海盐 设为默认头像" [ref=e85] [cursor=pointer]:
+                    - img [ref=e87]
+                    - strong [ref=e88]: 海盐
+                    - generic [ref=e89]: 设为默认头像
+                  - button "暮紫 设为默认头像" [ref=e90] [cursor=pointer]:
+                    - img [ref=e92]
+                    - strong [ref=e93]: 暮紫
+                    - generic [ref=e94]: 设为默认头像
+                  - button "柑橘 当前已选择" [active] [ref=e138] [cursor=pointer]:
+                    - img [ref=e97]
+                    - strong [ref=e98]: 柑橘
+                    - generic [ref=e99]: 当前已选择
+                  - button "夜蓝 设为默认头像" [ref=e100] [cursor=pointer]:
+                    - img [ref=e102]
+                    - strong [ref=e103]: 夜蓝
+                    - generic [ref=e104]: 设为默认头像
+              - generic [ref=e105]:
+                - generic [ref=e106]:
+                  - generic [ref=e107]: 昵称
+                  - textbox "昵称" [ref=e111]:
+                    - /placeholder: 显示给协作者的名称
+                    - text: 修复验证
+                - generic [ref=e112]:
+                  - generic [ref=e113]: 邮箱
+                  - textbox "邮箱" [ref=e117]:
+                    - /placeholder: 用于账号通知与联系
+                    - text: kpfix0420user@example.com
+            - complementary [ref=e118]:
+              - generic [ref=e119]:
+                - text: Overview
+                - heading "账号概览" [level=3] [ref=e120]
+                - generic [ref=e121]:
+                  - article [ref=e122]:
+                    - generic [ref=e123]: 账号角色
+                    - strong [ref=e124]: USER
+                  - article [ref=e125]:
+                    - generic [ref=e126]: 用户名
+                    - strong [ref=e127]: kpfix0420user
+                  - article [ref=e128]:
+                    - generic [ref=e129]: 创建时间
+                    - strong [ref=e130]: 2026/04/20
+              - generic [ref=e131]:
+                - text: Avatar Tips
+                - heading "头像说明" [level=3] [ref=e132]
+                - list [ref=e133]:
+                  - listitem [ref=e134]: 默认头像会直接在个人中心、协作者面板和实时协作条中生效。
+                  - listitem [ref=e135]: 上传头像支持 PNG、JPG、WEBP、GIF，上传成功后仍需点击“保存资料”。
+                  - listitem [ref=e136]: 如果不想使用图片头像，可以切换回文字头像，系统会显示昵称首字。
+  - alert [ref=e139]:
+    - img [ref=e141]
+    - paragraph [ref=e143]: 已选择默认头像，保存资料后生效

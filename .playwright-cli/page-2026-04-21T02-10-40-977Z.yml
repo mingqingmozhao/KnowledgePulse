@@ -1,0 +1,302 @@
+- generic [ref=e1]:
+  - img
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]:
+        - text: Knowledge Pulse
+        - heading "知脉" [level=1] [ref=e6]
+        - paragraph [ref=e7]: 把碎片知识整理成可搜索、可协作、可连接的知识网络。
+      - generic [ref=e8]:
+        - strong [ref=e9]: 修复验证
+        - generic [ref=e10]: USER
+        - generic [ref=e11]: kpfix0420user@example.com
+      - navigation [ref=e12]:
+        - button "仪表盘 统计与灵感" [ref=e13] [cursor=pointer]:
+          - strong [ref=e14]: 仪表盘
+          - generic [ref=e15]: 统计与灵感
+        - button "文件与笔记 目录树与笔记库" [ref=e16] [cursor=pointer]:
+          - strong [ref=e17]: 文件与笔记
+          - generic [ref=e18]: 目录树与笔记库
+        - button "知识图谱 关联与脉络" [ref=e19] [cursor=pointer]:
+          - strong [ref=e20]: 知识图谱
+          - generic [ref=e21]: 关联与脉络
+        - button "全文搜索 标题、内容、标签" [ref=e22] [cursor=pointer]:
+          - strong [ref=e23]: 全文搜索
+          - generic [ref=e24]: 标题、内容、标签
+        - button "个人中心 资料与权限" [ref=e25] [cursor=pointer]:
+          - strong [ref=e26]: 个人中心
+          - generic [ref=e27]: 资料与权限
+      - generic [ref=e28]:
+        - button "新建笔记" [ref=e29] [cursor=pointer]:
+          - generic [ref=e30]: 新建笔记
+        - button "打开工作区" [ref=e31] [cursor=pointer]:
+          - generic [ref=e32]: 打开工作区
+    - generic [ref=e33]:
+      - banner [ref=e34]:
+        - generic [ref=e36]:
+          - text: Workspace
+          - heading "编辑笔记" [level=2] [ref=e37]
+        - generic [ref=e38]:
+          - searchbox "搜索标题、内容或标签" [ref=e39]
+          - button "搜索" [ref=e40] [cursor=pointer]
+        - generic [ref=e41]:
+          - button "个人中心" [ref=e42] [cursor=pointer]:
+            - generic [ref=e43]: 个人中心
+          - button "退出" [ref=e44] [cursor=pointer]:
+            - generic [ref=e45]: 退出
+      - main [ref=e46]:
+        - generic [ref=e47]:
+          - generic [ref=e48]:
+            - generic [ref=e49]:
+              - text: Editor
+              - heading "???????" [level=1] [ref=e50]
+              - paragraph [ref=e51]: 支持 Markdown + 富文本混合编辑、版本历史、分享协作、知识关联与实时同步。
+            - generic [ref=e52]:
+              - button "保存笔记" [ref=e53] [cursor=pointer]:
+                - generic [ref=e54]: 保存笔记
+              - button "导出 Markdown" [ref=e55] [cursor=pointer]:
+                - generic [ref=e56]: 导出 Markdown
+              - button "导出 Word" [ref=e57] [cursor=pointer]:
+                - generic [ref=e58]: 导出 Word
+              - button "导出 PDF" [ref=e59] [cursor=pointer]:
+                - generic [ref=e60]: 导出 PDF
+              - button "移入回收站" [ref=e61] [cursor=pointer]:
+                - generic [ref=e62]: 移入回收站
+          - generic [ref=e63]:
+            - complementary [ref=e64]:
+              - generic [ref=e65]:
+                - generic [ref=e66]:
+                  - generic [ref=e67]:
+                    - text: Explorer
+                    - heading "左侧目录" [level=3] [ref=e68]
+                  - button "全部" [ref=e69] [cursor=pointer]:
+                    - generic [ref=e70]: 全部
+                - generic [ref=e71]:
+                  - button "新建" [ref=e72] [cursor=pointer]:
+                    - generic [ref=e73]: 新建
+                  - button "子级" [disabled] [ref=e74]:
+                    - generic [ref=e75]: 子级
+                  - button "重命名" [disabled] [ref=e76]:
+                    - generic [ref=e77]: 重命名
+                  - button "删除" [disabled] [ref=e78]:
+                    - generic [ref=e79]: 删除
+                - generic [ref=e80]:
+                  - textbox "输入名称快速查找文件夹" [ref=e83]
+                  - generic [ref=e84]: 5 / 5
+                - generic [ref=e85]:
+                  - generic [ref=e86]: 默认仅展开当前路径
+                  - generic [ref=e87]:
+                    - button "展开全部" [ref=e88] [cursor=pointer]:
+                      - generic [ref=e89]: 展开全部
+                    - button "收起层级" [disabled] [ref=e90]:
+                      - generic [ref=e91]: 收起层级
+                - tree [ref=e92]:
+                  - treeitem "????? 0" [ref=e93]:
+                    - generic [ref=e94] [cursor=pointer]:
+                      - img [ref=e96]
+                      - generic [ref=e98]:
+                        - generic [ref=e99]: "?????"
+                        - generic [ref=e100]: "0"
+                  - treeitem "???? 0" [ref=e101]:
+                    - generic [ref=e103] [cursor=pointer]:
+                      - generic [ref=e104]: "????"
+                      - generic [ref=e105]: "0"
+              - generic [ref=e106]:
+                - generic [ref=e107]:
+                  - generic [ref=e108]:
+                    - text: Tags
+                    - heading "标签云" [level=3] [ref=e109]
+                  - generic [ref=e110]: 2 个主题
+                - generic [ref=e111]:
+                  - button "#?? 1" [ref=e112] [cursor=pointer]:
+                    - generic [ref=e113]: "#??"
+                    - strong [ref=e114]: "1"
+                  - button "#设计 1" [ref=e115] [cursor=pointer]:
+                    - generic [ref=e116]: "#设计"
+                    - strong [ref=e117]: "1"
+            - generic [ref=e118]:
+              - generic [ref=e119]:
+                - generic [ref=e120]:
+                  - generic [ref=e121]: Writing
+                  - textbox "输入标题，例如：Spring Security 权限设计" [ref=e124]: "???????"
+                - generic [ref=e125]:
+                  - generic [ref=e126]: 实时协作已连接
+                  - generic [ref=e127]: 上次保存：04/21 09:52
+              - generic [ref=e128]:
+                - generic [ref=e130] [cursor=pointer]:
+                  - generic:
+                    - combobox [ref=e132]
+                    - generic [ref=e133]: 选择所属文件夹
+                  - img [ref=e136]
+                - textbox "标签，使用英文逗号或中文逗号分隔" [ref=e140]: "??"
+              - generic [ref=e142]:
+                - generic [ref=e143]:
+                  - button "表情 <Ctrl+E>" [ref=e145] [cursor=pointer]:
+                    - img [ref=e146]
+                  - button "标题 <Ctrl+H>" [ref=e149] [cursor=pointer]:
+                    - img [ref=e150]
+                  - button "粗体 <Ctrl+B>" [ref=e153] [cursor=pointer]:
+                    - img [ref=e154]
+                  - button "斜体 <Ctrl+I>" [ref=e157] [cursor=pointer]:
+                    - img [ref=e158]
+                  - button "删除线 <Ctrl+D>" [ref=e161] [cursor=pointer]:
+                    - img [ref=e162]
+                  - button "链接 <Ctrl+K>" [ref=e165] [cursor=pointer]:
+                    - img [ref=e166]
+                  - button "无序列表 <Ctrl+L>" [ref=e170] [cursor=pointer]:
+                    - img [ref=e171]
+                  - button "有序列表 <Ctrl+O>" [ref=e174] [cursor=pointer]:
+                    - img [ref=e175]
+                  - button "任务列表 <Ctrl+J>" [ref=e178] [cursor=pointer]:
+                    - img [ref=e179]
+                  - button "列表反向缩进 <Ctrl+Shift+I>" [ref=e182]:
+                    - img [ref=e183]
+                  - button "列表缩进 <Ctrl+Shift+O>" [ref=e186]:
+                    - img [ref=e187]
+                  - button "引用 <Ctrl+;>" [ref=e191] [cursor=pointer]:
+                    - img [ref=e192]
+                  - button "分隔线 <Ctrl+Shift+H>" [ref=e195] [cursor=pointer]:
+                    - img [ref=e196]
+                  - button "代码块 <Ctrl+U>" [ref=e199] [cursor=pointer]:
+                    - img [ref=e200]
+                  - button "行内代码 <Ctrl+G>" [ref=e203] [cursor=pointer]:
+                    - img [ref=e204]
+                  - button "表格 <Ctrl+M>" [ref=e207] [cursor=pointer]:
+                    - img [ref=e208]
+                  - button "撤销 <Ctrl+Z>" [ref=e212]:
+                    - img [ref=e213]
+                  - button "重做 <Ctrl+Y>" [ref=e216]:
+                    - img [ref=e217]
+                  - button "全屏切换 <Ctrl+'>" [ref=e220] [cursor=pointer]:
+                    - img [ref=e221]
+                  - button "预览" [ref=e224] [cursor=pointer]:
+                    - img [ref=e225]
+                  - generic "markdown" [ref=e227] [cursor=pointer]: "9"
+                - generic [ref=e228]:
+                  - text: 开始记录你的知识脉络... 开始记录你的知识脉络...
+                  - 'heading "H1 # ???????" [level=1] [ref=e231]':
+                    - text: H1
+                    - generic: "#"
+                    - text: "???????"
+              - generic [ref=e233]: 编辑内容会每 800ms 自动向协作频道推送一次增量同步。
+            - complementary [ref=e234]:
+              - generic [ref=e235]:
+                - generic [ref=e236]: Share
+                - heading "分享设置" [level=3] [ref=e237]
+                - generic [ref=e238]:
+                  - generic [ref=e239]:
+                    - generic [ref=e240]: 访问范围
+                    - generic [ref=e243] [cursor=pointer]:
+                      - generic:
+                        - combobox "访问范围" [ref=e245]
+                        - generic [ref=e246]: 关闭分享
+                      - img [ref=e249]
+                  - generic [ref=e251]:
+                    - generic [ref=e252]: 访问密码（可选）
+                    - textbox "访问密码（可选）" [ref=e256]:
+                      - /placeholder: 如需额外口令，可在此设置
+                - generic [ref=e257]:
+                  - generic [ref=e258]:
+                    - strong [ref=e259]: 关闭分享
+                    - generic [ref=e260]: 仅自己和协作者可见
+                  - generic [ref=e261]:
+                    - strong [ref=e262]: 公开分享
+                    - generic [ref=e263]: 任何拿到链接的人都可访问
+                  - generic [ref=e264]:
+                    - strong [ref=e265]: 登录可见
+                    - generic [ref=e266]: 访问链接后必须先登录
+                - generic [ref=e267]:
+                  - button "关闭分享" [ref=e268] [cursor=pointer]:
+                    - generic [ref=e269]: 关闭分享
+                  - button "复制链接" [ref=e270] [cursor=pointer]:
+                    - generic [ref=e271]: 复制链接
+                  - button "清空分享" [ref=e272] [cursor=pointer]:
+                    - generic [ref=e273]: 清空分享
+                - paragraph [ref=e274]: 当前未开启分享。
+                - paragraph [ref=e275]: 尚未生成分享链接
+              - generic [ref=e276]:
+                - generic [ref=e277]: Collaborators
+                - heading "协作者" [level=3] [ref=e278]
+                - generic [ref=e279]:
+                  - generic [ref=e280]: 拥有者
+                  - generic [ref=e281]:
+                    - generic [ref=e282]:
+                      - generic [ref=e283]: 修复
+                      - generic [ref=e284]:
+                        - strong [ref=e285]: 修复验证
+                        - generic [ref=e286]: "@kpfix0420user · 当前由你拥有"
+                    - generic [ref=e287]: OWNER
+                - generic [ref=e289]:
+                  - generic [ref=e290]:
+                    - generic [ref=e291]: "??"
+                    - generic [ref=e292]:
+                      - strong [ref=e293]: "?????"
+                      - generic [ref=e294]: "@kpfix0421collab · kpfix0421collab@example.com · EDIT"
+                  - generic [ref=e295]:
+                    - generic [ref=e297] [cursor=pointer]:
+                      - generic:
+                        - combobox [ref=e299]
+                        - generic [ref=e300]: EDIT
+                      - img [ref=e303]
+                    - button "移除" [ref=e305] [cursor=pointer]:
+                      - generic [ref=e306]: 移除
+                - generic [ref=e307]:
+                  - generic [ref=e383]:
+                    - combobox [active] [ref=e311]
+                    - generic [ref=e312]: 按昵称、用户名或邮箱搜索用户
+                  - generic [ref=e314] [cursor=pointer]:
+                    - generic:
+                      - combobox [ref=e316]
+                      - generic [ref=e317]: EDIT
+                    - img [ref=e320]
+                  - button "添加协作者" [ref=e322] [cursor=pointer]:
+                    - generic [ref=e323]: 添加协作者
+                - paragraph [ref=e324]: 通过昵称、用户名或邮箱搜索用户后即可添加到当前笔记。
+              - generic [ref=e325]:
+                - generic [ref=e326]: Versions
+                - heading "版本历史" [level=3] [ref=e327]
+                - article [ref=e329]:
+                  - generic [ref=e330]:
+                    - strong [ref=e331]: 版本 1
+                    - text: 04/21 09:52
+                  - paragraph [ref=e332]: "# ???????"
+                  - button "恢复此版本" [ref=e333] [cursor=pointer]:
+                    - generic [ref=e334]: 恢复此版本
+              - generic [ref=e335]:
+                - generic [ref=e336]: Graph
+                - heading "知识关联" [level=3] [ref=e337]
+                - generic [ref=e338]:
+                  - generic [ref=e339]:
+                    - generic [ref=e340]: 关联目标
+                    - generic [ref=e343] [cursor=pointer]:
+                      - generic:
+                        - combobox "关联目标" [ref=e345]
+                        - generic [ref=e346]: 选择目标笔记
+                      - img [ref=e349]
+                  - generic [ref=e351]:
+                    - generic [ref=e352]: 关系类型
+                    - generic [ref=e355] [cursor=pointer]:
+                      - generic:
+                        - combobox "关系类型" [ref=e357]
+                        - generic [ref=e358]: 相关
+                      - img [ref=e361]
+                - generic [ref=e363]:
+                  - button "添加关联" [ref=e364] [cursor=pointer]:
+                    - generic [ref=e365]: 添加关联
+                  - button "查看图谱" [ref=e366] [cursor=pointer]:
+                    - generic [ref=e367]: 查看图谱
+          - generic [ref=e368]:
+            - generic [ref=e369]:
+              - generic [ref=e370]: Realtime
+              - strong [ref=e371]: 2 位协作者
+            - generic [ref=e372]:
+              - generic [ref=e373]:
+                - generic [ref=e374]: 修复
+                - generic [ref=e375]:
+                  - strong [ref=e376]: 修复验证
+                  - generic [ref=e377]: 在线
+              - generic [ref=e378]:
+                - generic [ref=e379]: "??"
+                - generic [ref=e380]:
+                  - strong [ref=e381]: "?????"
+                  - generic [ref=e382]: EDIT

@@ -1,0 +1,49 @@
+server:
+  port: 0
+  servlet:
+    context-path: /api/v1
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:knowledge_pulse;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE;NON_KEYWORDS=USER
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:test-schema.sql
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 1
+      timeout: 1000ms
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 50MB
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+  global-config:
+    db-config:
+      id-type: auto
+  mapper-locations: classpath:mapper/*.xml
+
+jwt:
+  secret: knowledge-pulse-test-secret-key-2024-must-be-at-least-32
+  expiration: 86400000
+  refresh-expiration: 604800000
+
+knowledgepulse:
+  attachment-storage-dir: target/test-attachments
+
+knife4j:
+  enable: false
+
+logging:
+  level:
+    com.ahy.knowledgepulse: INFO
+    org.springframework.security: WARN

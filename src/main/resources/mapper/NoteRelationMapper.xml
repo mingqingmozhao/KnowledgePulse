@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ahy.knowledgepulse.mapper.NoteRelationMapper">
+
+    <select id="findBySourceNoteId" resultType="com.ahy.knowledgepulse.entity.NoteRelation">
+        SELECT * FROM note_relation WHERE source_note_id = #{sourceNoteId}
+    </select>
+
+    <select id="findByTargetNoteId" resultType="com.ahy.knowledgepulse.entity.NoteRelation">
+        SELECT * FROM note_relation WHERE target_note_id = #{targetNoteId}
+    </select>
+
+    <select id="findByUserId" resultType="com.ahy.knowledgepulse.entity.NoteRelation">
+        SELECT r.* FROM note_relation r
+        JOIN note s ON r.source_note_id = s.id
+        WHERE s.user_id = #{userId}
+    </select>
+
+    <delete id="deleteByNoteId">
+        DELETE FROM note_relation WHERE source_note_id = #{noteId} OR target_note_id = #{noteId}
+    </delete>
+
+    <select id="findRelationsByNoteIds" resultType="com.ahy.knowledgepulse.entity.NoteRelation">
+        SELECT * FROM note_relation
+        WHERE source_note_id IN
+        <foreach collection="noteIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        OR target_note_id IN
+        <foreach collection="noteIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+</mapper>

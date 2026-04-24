@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ahy.knowledgepulse.mapper.UserMapper">
+
+    <select id="findByUsername" resultType="com.ahy.knowledgepulse.entity.User">
+        SELECT * FROM user WHERE username = #{username}
+    </select>
+
+    <select id="findByEmail" resultType="com.ahy.knowledgepulse.entity.User">
+        SELECT * FROM user WHERE email = #{email}
+    </select>
+
+    <select id="searchUsers" resultType="com.ahy.knowledgepulse.entity.User">
+        SELECT *
+        FROM user
+        <where>
+            <if test="excludeUserId != null">
+                id &lt;&gt; #{excludeUserId}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    LOWER(username) LIKE CONCAT('%', LOWER(#{keyword}), '%')
+                    OR LOWER(email) LIKE CONCAT('%', LOWER(#{keyword}), '%')
+                    OR LOWER(COALESCE(nickname, '')) LIKE CONCAT('%', LOWER(#{keyword}), '%')
+                )
+            </if>
+        </where>
+        ORDER BY create_time DESC, id DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>

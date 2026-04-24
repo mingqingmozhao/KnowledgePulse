@@ -1,0 +1,158 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< com.ahy:KnowledgePulse >-----------------------
+[INFO] Building KnowledgePulse 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.3.5:run (default-cli) > test-compile @ KnowledgePulse >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ KnowledgePulse ---
+[INFO] Copying 2 resources from src\main\resources to target\classes
+[INFO] Copying 11 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ KnowledgePulse ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ KnowledgePulse ---
+[INFO] Copying 2 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ KnowledgePulse ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] <<< spring-boot:3.3.5:run (default-cli) < test-compile @ KnowledgePulse <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.3.5:run (default-cli) @ KnowledgePulse ---
+[INFO] Attaching agents: []
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.5)
+
+2026-04-23T17:51:50.534+08:00  INFO 294792 --- [KnowledgePulse] [           main] c.a.k.KnowledgePulseApplication          : Starting KnowledgePulseApplication using Java 21.0.7 with PID 294792 (D:\code\system\KnowledgePulse\target\classes started by 七萧 in D:\code\system\KnowledgePulse)
+2026-04-23T17:51:50.535+08:00 DEBUG 294792 --- [KnowledgePulse] [           main] c.a.k.KnowledgePulseApplication          : Running with Spring Boot v3.3.5, Spring v6.1.14
+2026-04-23T17:51:50.535+08:00  INFO 294792 --- [KnowledgePulse] [           main] c.a.k.KnowledgePulseApplication          : No active profile set, falling back to 1 default profile: "default"
+2026-04-23T17:51:51.231+08:00  INFO 294792 --- [KnowledgePulse] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-04-23T17:51:51.234+08:00  INFO 294792 --- [KnowledgePulse] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-04-23T17:51:51.261+08:00  INFO 294792 --- [KnowledgePulse] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 16 ms. Found 0 Redis repository interfaces.
+2026-04-23T17:51:51.767+08:00  INFO 294792 --- [KnowledgePulse] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-04-23T17:51:51.780+08:00  INFO 294792 --- [KnowledgePulse] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-04-23T17:51:51.781+08:00  INFO 294792 --- [KnowledgePulse] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
+2026-04-23T17:51:51.850+08:00  INFO 294792 --- [KnowledgePulse] [           main] o.a.c.c.C.[.[localhost].[/api/v1]        : Initializing Spring embedded WebApplicationContext
+2026-04-23T17:51:51.852+08:00  INFO 294792 --- [KnowledgePulse] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1277 ms
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+2026-04-23T17:51:51.894+08:00 DEBUG 294792 --- [KnowledgePulse] [           main] c.a.k.filter.JwtAuthenticationFilter     : Filter 'jwtAuthenticationFilter' configured for use
+2026-04-23T17:51:51.932+08:00  INFO 294792 --- [KnowledgePulse] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-04-23T17:51:52.067+08:00  INFO 294792 --- [KnowledgePulse] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@4ae280da
+2026-04-23T17:51:52.070+08:00  INFO 294792 --- [KnowledgePulse] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+Logging initialized using 'class org.apache.ibatis.logging.stdout.StdOutImpl' adapter.
+Initialization Sequence datacenterId:6 workerId:25
+ _ _   |_  _ _|_. ___ _ |    _ 
+| | |\/|_)(_| | |_\  |_)||_|_\ 
+     /               |         
+                        3.5.5 
+2026-04-23T17:51:52.789+08:00  INFO 294792 --- [KnowledgePulse] [           main] org.quartz.impl.StdSchedulerFactory      : Using default implementation for ThreadExecutor
+2026-04-23T17:51:52.799+08:00  INFO 294792 --- [KnowledgePulse] [           main] org.quartz.core.SchedulerSignalerImpl    : Initialized Scheduler Signaller of type: class org.quartz.core.SchedulerSignalerImpl
+2026-04-23T17:51:52.800+08:00  INFO 294792 --- [KnowledgePulse] [           main] org.quartz.core.QuartzScheduler          : Quartz Scheduler v.2.3.2 created.
+2026-04-23T17:51:52.801+08:00  INFO 294792 --- [KnowledgePulse] [           main] org.quartz.simpl.RAMJobStore             : RAMJobStore initialized.
+2026-04-23T17:51:52.802+08:00  INFO 294792 --- [KnowledgePulse] [           main] org.quartz.core.QuartzScheduler          : Scheduler meta-data: Quartz Scheduler (v2.3.2) 'KnowledgePulseScheduler' with instanceId 'NON_CLUSTERED'
+  Scheduler class: 'org.quartz.core.QuartzScheduler' - running locally.
+  NOT STARTED.
+  Currently in standby mode.
+  Number of jobs executed: 0
+  Using thread pool 'org.quartz.simpl.SimpleThreadPool' - with 5 threads.
+  Using job-store 'org.quartz.simpl.RAMJobStore' - which does not support persistence. and is not clustered.
+
+2026-04-23T17:51:52.802+08:00  INFO 294792 --- [KnowledgePulse] [           main] org.quartz.impl.StdSchedulerFactory      : Quartz scheduler 'KnowledgePulseScheduler' initialized from an externally provided properties instance.
+2026-04-23T17:51:52.802+08:00  INFO 294792 --- [KnowledgePulse] [           main] org.quartz.impl.StdSchedulerFactory      : Quartz scheduler version: 2.3.2
+2026-04-23T17:51:52.803+08:00  INFO 294792 --- [KnowledgePulse] [           main] org.quartz.core.QuartzScheduler          : JobFactory set to: org.springframework.scheduling.quartz.AdaptableJobFactory@e171f93
+2026-04-23T17:51:53.372+08:00  INFO 294792 --- [KnowledgePulse] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/api/v1'
+2026-04-23T17:51:53.373+08:00  INFO 294792 --- [KnowledgePulse] [           main] o.s.s.quartz.SchedulerFactoryBean        : Starting Quartz Scheduler now
+2026-04-23T17:51:53.373+08:00  INFO 294792 --- [KnowledgePulse] [           main] org.quartz.core.QuartzScheduler          : Scheduler KnowledgePulseScheduler_$_NON_CLUSTERED started.
+2026-04-23T17:51:53.374+08:00  INFO 294792 --- [KnowledgePulse] [           main] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
+2026-04-23T17:51:53.374+08:00  INFO 294792 --- [KnowledgePulse] [           main] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@3c9cfcde]]
+2026-04-23T17:51:53.375+08:00  INFO 294792 --- [KnowledgePulse] [           main] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
+2026-04-23T17:51:53.382+08:00  INFO 294792 --- [KnowledgePulse] [           main] c.a.k.KnowledgePulseApplication          : Started KnowledgePulseApplication in 3.167 seconds (process running for 3.504)
+2026-04-23T17:51:54.642+08:00  INFO 294792 --- [KnowledgePulse] [nio-8080-exec-1] o.a.c.c.C.[.[localhost].[/api/v1]        : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-04-23T17:51:54.642+08:00  INFO 294792 --- [KnowledgePulse] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-04-23T17:51:54.643+08:00  INFO 294792 --- [KnowledgePulse] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@9151c8c] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@2013492164 wrapping com.mysql.cj.jdbc.ConnectionImpl@4ae280da] will not be managed by Spring
+==>  Preparing: SELECT COUNT( * ) AS total FROM note_notification WHERE (recipient_user_id = ? AND read_flag = ?)
+==> Parameters: 1005(Long), 0(Integer)
+<==    Columns: total
+<==        Row: 1
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@9151c8c]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@4b036792] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1170509954 wrapping com.mysql.cj.jdbc.ConnectionImpl@4ae280da] will not be managed by Spring
+==>  Preparing: SELECT COUNT( * ) AS total FROM note_notification WHERE (recipient_user_id = ? AND read_flag = ?)
+==> Parameters: 1007(Long), 0(Integer)
+<==    Columns: total
+<==        Row: 0
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@4b036792]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@4f99ab9] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1419133507 wrapping com.mysql.cj.jdbc.ConnectionImpl@4ae280da] will not be managed by Spring
+==>  Preparing: SELECT COUNT( * ) AS total FROM note_notification WHERE (recipient_user_id = ? AND read_flag = ?)
+==> Parameters: 1001(Long), 0(Integer)
+<==    Columns: total
+<==        Row: 0
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@4f99ab9]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3eaa3a73] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@812504022 wrapping com.mysql.cj.jdbc.ConnectionImpl@4ae280da] will not be managed by Spring
+==>  Preparing: SELECT COUNT( * ) AS total FROM note_notification WHERE (recipient_user_id = ? AND read_flag = ?)
+==> Parameters: 1005(Long), 0(Integer)
+<==    Columns: total
+<==        Row: 1
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3eaa3a73]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@45059691] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1198522066 wrapping com.mysql.cj.jdbc.ConnectionImpl@4ae280da] will not be managed by Spring
+==>  Preparing: SELECT COUNT( * ) AS total FROM note_notification WHERE (recipient_user_id = ? AND read_flag = ?)
+==> Parameters: 1007(Long), 0(Integer)
+<==    Columns: total
+<==        Row: 0
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@45059691]
+2026-04-23T17:52:53.358+08:00  INFO 294792 --- [KnowledgePulse] [MessageBroker-3] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[3 current WS(3)-HttpStream(0)-HttpPoll(0), 3 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(3)-CONNECTED(3)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 48, active threads = 0, queued tasks = 0, completed tasks = 90], outboundChannel[pool size = 48, active threads = 0, queued tasks = 0, completed tasks = 54], sockJsScheduler[pool size = 24, active threads = 1, queued tasks = 6, completed tasks = 12]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@63f968fb] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@13260031 wrapping com.mysql.cj.jdbc.ConnectionImpl@4ae280da] will not be managed by Spring
+==>  Preparing: SELECT COUNT( * ) AS total FROM note_notification WHERE (recipient_user_id = ? AND read_flag = ?)
+==> Parameters: 1005(Long), 0(Integer)
+<==    Columns: total
+<==        Row: 1
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@63f968fb]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1fe2505d] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@175945804 wrapping com.mysql.cj.jdbc.ConnectionImpl@4ae280da] will not be managed by Spring
+==>  Preparing: SELECT COUNT( * ) AS total FROM note_notification WHERE (recipient_user_id = ? AND read_flag = ?)
+==> Parameters: 1007(Long), 0(Integer)
+<==    Columns: total
+<==        Row: 0
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1fe2505d]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3eb442d7] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@868999050 wrapping com.mysql.cj.jdbc.ConnectionImpl@4ae280da] will not be managed by Spring
+==>  Preparing: SELECT COUNT( * ) AS total FROM note_notification WHERE (recipient_user_id = ? AND read_flag = ?)
+==> Parameters: 1001(Long), 0(Integer)
+<==    Columns: total
+<==        Row: 0
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3eb442d7]
