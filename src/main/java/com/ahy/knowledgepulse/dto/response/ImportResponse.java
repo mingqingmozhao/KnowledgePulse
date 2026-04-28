@@ -28,6 +28,8 @@ public class ImportResponse {
 
     private List<ImportedNoteItem> notes = new ArrayList<>();
 
+    private List<AttachmentResponse> attachments = new ArrayList<>();
+
     @Data
     public static class ImportedNoteItem {
 

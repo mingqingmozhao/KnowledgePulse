@@ -9,6 +9,7 @@ export default defineConfig({
   define: {
     global: 'globalThis'
   },
+  envPrefix: ['VITE_', 'PUBLIC_'],
   plugins: [
     vue(),
     AutoImport({

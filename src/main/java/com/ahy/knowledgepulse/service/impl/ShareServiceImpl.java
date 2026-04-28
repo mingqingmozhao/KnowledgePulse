@@ -15,6 +15,7 @@ import com.ahy.knowledgepulse.service.OperationLogService;
 import com.ahy.knowledgepulse.service.ShareService;
 import com.ahy.knowledgepulse.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +38,9 @@ public class ShareServiceImpl implements ShareService {
     private final PasswordEncoder passwordEncoder;
     private final NotificationService notificationService;
     private final OperationLogService operationLogService;
+
+    @Value("${knowledgepulse.public-app-url:}")
+    private String publicAppUrl;
 
     @Override
     @Transactional
@@ -75,7 +79,7 @@ public class ShareServiceImpl implements ShareService {
                 noteId,
                 "/note/" + noteId + "/edit"
         );
-        return "/share/" + token;
+        return buildShareLink(token);
     }
 
     @Override
@@ -151,6 +155,21 @@ public class ShareServiceImpl implements ShareService {
         }
 
         return "分享";
+    }
+
+    private String buildShareLink(String token) {
+        String sharePath = "/share/" + token;
+
+        if (!StringUtils.hasText(publicAppUrl)) {
+            return sharePath;
+        }
+
+        String baseUrl = publicAppUrl.trim();
+        while (baseUrl.endsWith("/")) {
+            baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+        }
+
+        return baseUrl + sharePath;
     }
 
     private NoteResponse convertToResponse(Note note) {

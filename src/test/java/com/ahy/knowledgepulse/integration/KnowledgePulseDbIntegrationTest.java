@@ -8,6 +8,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,6 +24,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.mock.web.MockMultipartFile;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -161,6 +167,52 @@ class KnowledgePulseDbIntegrationTest {
     }
 
     @Test
+    void exportingNoteShouldPreserveChineseFilenameAndContent() throws Exception {
+        insertUser("exporter", "password123", "USER");
+        String token = login("exporter", "password123");
+        long noteId = createNote(token, "灵感计划", List.of("中文", "导出"));
+
+        MvcResult markdownResult = mockMvc.perform(post(API_PREFIX + "/note/export/{id}", noteId)
+                        .contextPath(API_PREFIX)
+                        .header("Authorization", bearerToken(token))
+                        .param("format", "MARKDOWN"))
+                .andExpect(status().isOk())
+                .andReturn();
+        byte[] markdownBytes = markdownResult.getResponse().getContentAsByteArray();
+
+        assertThat(markdownResult.getResponse().getHeader("Content-Disposition"))
+                .contains("attachment")
+                .contains("UTF-8");
+        assertThat(markdownResult.getResponse().getContentType()).contains("text/markdown");
+        assertThat(markdownBytes[0]).isEqualTo((byte) 0xEF);
+        assertThat(markdownBytes[1]).isEqualTo((byte) 0xBB);
+        assertThat(markdownBytes[2]).isEqualTo((byte) 0xBF);
+        assertThat(new String(markdownBytes, StandardCharsets.UTF_8)).contains("# 灵感计划");
+
+        MvcResult wordResult = mockMvc.perform(post(API_PREFIX + "/note/export/{id}", noteId)
+                        .contextPath(API_PREFIX)
+                        .header("Authorization", bearerToken(token))
+                        .param("format", "WORD"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertThat(wordResult.getResponse().getContentType()).contains("charset=UTF-8");
+        assertThat(new String(wordResult.getResponse().getContentAsByteArray(), StandardCharsets.UTF_8))
+                .contains("Content-Type")
+                .contains("灵感计划");
+
+        MvcResult pdfResult = mockMvc.perform(post(API_PREFIX + "/note/export/{id}", noteId)
+                        .contextPath(API_PREFIX)
+                        .header("Authorization", bearerToken(token))
+                        .param("format", "PDF"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertThat(new String(pdfResult.getResponse().getContentAsByteArray(), 0, 4, StandardCharsets.US_ASCII))
+                .isEqualTo("%PDF");
+    }
+
+    @Test
     void deletingFolderShouldDetachTrashedNotesBeforeRemovingFolder() throws Exception {
         insertUser("folder-owner", "password123", "USER");
         String token = login("folder-owner", "password123");
@@ -225,6 +277,11 @@ class KnowledgePulseDbIntegrationTest {
                 .andReturn());
         assertThat(inspirationBody.path("code").asInt()).isEqualTo(200);
         assertThat(inspirationBody.path("data").path("recommendedTags").toString()).contains("graph");
+        assertThat(inspirationBody.path("data").path("recommendations").size()).isGreaterThan(0);
+        assertThat(inspirationBody.path("data").path("recommendations").toString()).contains("graph");
+        assertThat(inspirationBody.path("data").path("inspirationPrompts").size()).isGreaterThan(0);
+        assertThat(inspirationBody.path("data").path("inspirationPrompts").toString()).contains("graph");
+        assertThat(inspirationBody.path("data").path("matchSummary").asText()).contains("匹配");
     }
 
     @Test
@@ -384,6 +441,32 @@ class KnowledgePulseDbIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn());
         assertThat(clearedCountBody.path("data").path("count").asLong()).isZero();
+    }
+
+    @Test
+    void shareLinkShouldUseConfiguredPublicAppUrl() throws Exception {
+        insertUser("share-owner", "password123", "USER");
+        String token = login("share-owner", "password123");
+        long noteId = createNote(token, "Public Share Note", List.of("share"));
+
+        JsonNode shareBody = readBody(mockMvc.perform(post(API_PREFIX + "/share/{noteId}", noteId)
+                        .contextPath(API_PREFIX)
+                        .header("Authorization", bearerToken(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("isPublic", 1))))
+                .andExpect(status().isOk())
+                .andReturn());
+
+        String shareLink = shareBody.path("data").asText();
+        assertThat(shareLink).startsWith("https://knowledgepulse.example.test/share/");
+
+        String shareToken = shareLink.substring(shareLink.lastIndexOf('/') + 1);
+        JsonNode publicBody = readBody(mockMvc.perform(get(API_PREFIX + "/share/public/{token}", shareToken)
+                        .contextPath(API_PREFIX))
+                .andExpect(status().isOk())
+                .andReturn());
+
+        assertThat(publicBody.path("data").path("title").asText()).isEqualTo("Public Share Note");
     }
 
     @Test
@@ -591,6 +674,43 @@ class KnowledgePulseDbIntegrationTest {
     }
 
     @Test
+    void documentImportShouldExtractPdfAndWordIntoNotesWithSourceAttachments() throws Exception {
+        insertUser("document-owner", "password123", "USER");
+        String token = login("document-owner", "password123");
+
+        MockMultipartFile pdf = pdfFile("Research.pdf", "Quarterly Research Notes");
+        MockMultipartFile docx = docxFile("客户访谈.docx", "客户访谈记录", "用户希望把资料直接转成笔记。");
+
+        JsonNode importBody = readBody(mockMvc.perform(multipart(API_PREFIX + "/import/documents")
+                        .file(pdf)
+                        .file(docx)
+                        .contextPath(API_PREFIX)
+                        .header("Authorization", bearerToken(token))
+                        .param("rootFolderName", "文档资料")
+                        .param("keepAttachments", "true")
+                        .param("paths", "Docs/Research.pdf", "Docs/客户访谈.docx"))
+                .andExpect(status().isOk())
+                .andReturn());
+
+        JsonNode data = importBody.path("data");
+        assertThat(data.path("mode").asText()).isEqualTo("DOCUMENT_EXTRACT");
+        assertThat(data.path("importedNotes").asInt()).isEqualTo(2);
+        assertThat(data.path("attachments").size()).isEqualTo(2);
+        assertThat(data.path("tags").toString()).contains("文档导入", "PDF", "Word");
+
+        assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM note", Long.class)).isEqualTo(2L);
+        assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM note_attachment", Long.class)).isEqualTo(2L);
+        assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM note_attachment_reference", Long.class)).isEqualTo(2L);
+
+        String wordContent = jdbcTemplate.queryForObject(
+                "SELECT content FROM note WHERE title = ?",
+                String.class,
+                "客户访谈"
+        );
+        assertThat(wordContent).contains("客户访谈记录", "来源附件", "用户希望把资料直接转成笔记");
+    }
+
+    @Test
     void adminAndAuditorPermissionsShouldBeSeparated() throws Exception {
         User admin = insertUser("admin", "password123", "ADMIN");
         User auditUser = insertUser("auditor", "password123", "USER");
@@ -711,6 +831,38 @@ class KnowledgePulseDbIntegrationTest {
         payload.put("tags", tags);
         payload.put("folderId", folderId);
         return payload;
+    }
+
+    private MockMultipartFile docxFile(String fileName, String title, String content) throws Exception {
+        try (XWPFDocument document = new XWPFDocument();
+             ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            document.createParagraph().createRun().setText(title);
+            document.createParagraph().createRun().setText(content);
+            document.write(outputStream);
+            return new MockMultipartFile(
+                    "files",
+                    fileName,
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    outputStream.toByteArray()
+            );
+        }
+    }
+
+    private MockMultipartFile pdfFile(String fileName, String content) throws Exception {
+        try (PDDocument document = new PDDocument();
+             ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            PDPage page = new PDPage();
+            document.addPage(page);
+            try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
+                contentStream.beginText();
+                contentStream.setFont(PDType1Font.HELVETICA, 12);
+                contentStream.newLineAtOffset(48, 720);
+                contentStream.showText(content);
+                contentStream.endText();
+            }
+            document.save(outputStream);
+            return new MockMultipartFile("files", fileName, "application/pdf", outputStream.toByteArray());
+        }
     }
 
     private JsonNode readBody(MvcResult result) throws Exception {

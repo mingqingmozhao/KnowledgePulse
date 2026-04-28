@@ -21,4 +21,6 @@ public interface NoteTagMapper extends BaseMapper<NoteTag> {
     List<String> findAllTagsByUserId(Long userId);
 
     List<String> findTopTagsByUserId(Long userId);
+
+    List<String> findTopAccessibleTagsByUserId(Long userId);
 }

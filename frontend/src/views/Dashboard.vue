@@ -235,6 +235,8 @@ const heatmapOption = computed(
 )
 
 const recentNotes = computed(() => workspaceStore.notes.slice(0, 4))
+const inspirationRecommendations = computed(() => workspaceStore.inspiration?.recommendations ?? [])
+const inspirationPrompts = computed(() => workspaceStore.inspiration?.inspirationPrompts ?? [])
 
 async function bootstrapDashboard() {
   try {
@@ -340,6 +342,10 @@ async function openSelectedDailyNote() {
 }
 
 function openRecentNote(noteId: number) {
+  void router.push(buildNoteEditRoute(noteId))
+}
+
+function openInspirationNote(noteId: number) {
   void router.push(buildNoteEditRoute(noteId))
 }
 
@@ -670,11 +676,46 @@ function getPanelToggleTitle(panel: PanelKey) {
           <div v-if="panelState.inspiration" class="dashboard-panel__body">
             <div v-if="workspaceStore.inspiration" class="inspiration-card">
               <blockquote>{{ workspaceStore.inspiration.inspirationQuote }}</blockquote>
+              <p v-if="workspaceStore.inspiration.matchSummary" class="inspiration-card__summary">
+                {{ workspaceStore.inspiration.matchSummary }}
+              </p>
 
               <div class="inspiration-card__tags">
                 <el-tag v-for="tag in workspaceStore.inspiration.recommendedTags" :key="tag" effect="plain">
                   #{{ tag }}
                 </el-tag>
+              </div>
+
+              <div v-if="inspirationPrompts.length" class="inspiration-card__prompts">
+                <span class="section-kicker">可以马上写</span>
+                <ol>
+                  <li v-for="prompt in inspirationPrompts" :key="prompt">{{ prompt }}</li>
+                </ol>
+              </div>
+
+              <div v-if="inspirationRecommendations.length" class="inspiration-card__matches">
+                <article
+                  v-for="item in inspirationRecommendations"
+                  :key="item.noteId"
+                  class="inspiration-card__match"
+                >
+                  <div class="inspiration-card__match-head">
+                    <div>
+                      <strong>{{ item.title }}</strong>
+                      <p>{{ item.reason }}</p>
+                    </div>
+                    <span>匹配度 {{ item.score }}</span>
+                  </div>
+
+                  <div class="inspiration-card__match-foot">
+                    <div class="inspiration-card__match-tags">
+                      <span v-for="tag in item.matchedTags" :key="`${item.noteId}-${tag}`">#{{ tag }}</span>
+                    </div>
+                    <el-button type="primary" plain @click="openInspirationNote(item.noteId)">打开笔记</el-button>
+                  </div>
+
+                  <small v-if="item.updateTime">最近更新 {{ relativeTime(item.updateTime) }}</small>
+                </article>
               </div>
 
               <div class="inspiration-card__meta">
@@ -801,6 +842,9 @@ function getPanelToggleTitle(panel: PanelKey) {
 .dashboard-workspace__copy p,
 .recent-list__copy span,
 .recent-list__actions small,
+.inspiration-card__summary,
+.inspiration-card__match p,
+.inspiration-card__match small,
 .inspiration-card__meta,
 .dashboard-daily__highlight p {
   color: var(--text-soft);
@@ -824,6 +868,7 @@ function getPanelToggleTitle(panel: PanelKey) {
 .dashboard-daily__metric,
 .dashboard-workspace__stat,
 .dashboard-daily__highlight,
+.inspiration-card__match,
 .recent-list__item {
   padding: 18px 20px;
   border-radius: 20px;
@@ -885,6 +930,8 @@ function getPanelToggleTitle(panel: PanelKey) {
 .dashboard-workspace__actions,
 .dashboard-panel__title-row,
 .inspiration-card__meta,
+.inspiration-card__match-head,
+.inspiration-card__match-foot,
 .recent-list__item,
 .recent-list__actions,
 .dashboard-daily__calendar-foot,
@@ -1062,6 +1109,82 @@ function getPanelToggleTitle(panel: PanelKey) {
   gap: 10px;
 }
 
+.inspiration-card__summary,
+.inspiration-card__match p {
+  margin: 0;
+  line-height: 1.75;
+}
+
+.inspiration-card__prompts {
+  display: grid;
+  gap: 10px;
+  padding: 16px 18px;
+  border: 1px solid rgba(197, 157, 88, 0.22);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at top left, rgba(197, 157, 88, 0.14), transparent 36%),
+    rgba(255, 250, 240, 0.74);
+}
+
+.inspiration-card__prompts ol {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--text);
+  line-height: 1.75;
+}
+
+.inspiration-card__prompts li::marker {
+  color: #8d4529;
+  font-weight: 800;
+}
+
+.inspiration-card__matches {
+  display: grid;
+  gap: 12px;
+}
+
+.inspiration-card__match {
+  display: grid;
+  gap: 12px;
+  background:
+    radial-gradient(circle at top right, rgba(54, 92, 75, 0.08), transparent 34%),
+    rgba(255, 255, 255, 0.72);
+}
+
+.inspiration-card__match-head strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.inspiration-card__match-head > span {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(54, 92, 75, 0.1);
+  color: #365c4b;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.inspiration-card__match-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.inspiration-card__match-tags span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: rgba(184, 92, 56, 0.09);
+  color: #8d4529;
+  font-size: 0.78rem;
+}
+
 .recent-list__copy strong {
   display: block;
 }
@@ -1090,6 +1213,8 @@ function getPanelToggleTitle(panel: PanelKey) {
   .dashboard-daily__calendar-foot,
   .dashboard-daily__calendar-nav,
   .inspiration-card__meta,
+  .inspiration-card__match-head,
+  .inspiration-card__match-foot,
   .recent-list__item,
   .recent-list__actions {
     flex-direction: column;

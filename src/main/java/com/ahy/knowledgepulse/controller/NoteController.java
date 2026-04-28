@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -139,11 +140,14 @@ public class NoteController {
     ) {
         ExportPayload payload = noteService.exportNote(id, format);
         MediaType mediaType = MediaType.parseMediaType(payload.getContentType());
-        String encodedFileName = new String(payload.getFileName().getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
+        ContentDisposition contentDisposition = ContentDisposition.attachment()
+                .filename(payload.getFileName(), StandardCharsets.UTF_8)
+                .build();
 
         return ResponseEntity.ok()
                 .contentType(mediaType)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedFileName + "\"")
+                .contentLength(payload.getContent().length)
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
                 .body(new ByteArrayResource(payload.getContent()));
     }
 }

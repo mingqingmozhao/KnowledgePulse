@@ -17,9 +17,13 @@ const props = withDefaults(
   }
 )
 
+type HtmlChangeMeta = {
+  external?: boolean
+}
+
 const emit = defineEmits<{
   (event: 'update:modelValue', value: string): void
-  (event: 'html-change', value: string): void
+  (event: 'html-change', value: string, meta?: HtmlChangeMeta): void
   (event: 'editing-region-change', value: string): void
   (event: 'ready'): void
 }>()
@@ -27,8 +31,31 @@ const emit = defineEmits<{
 const editorHost = ref<HTMLDivElement | null>(null)
 let editor: Vditor | null = null
 let syncingExternally = false
+let externalSyncTimer: number | null = null
 
 const VDITOR_LOCAL_CDN = '/vditor'
+
+function clearExternalSyncTimer() {
+  if (externalSyncTimer === null) {
+    return
+  }
+
+  window.clearTimeout(externalSyncTimer)
+  externalSyncTimer = null
+}
+
+function beginExternalSync() {
+  clearExternalSyncTimer()
+  syncingExternally = true
+}
+
+function finishExternalSyncSoon() {
+  clearExternalSyncTimer()
+  externalSyncTimer = window.setTimeout(() => {
+    syncingExternally = false
+    externalSyncTimer = null
+  }, 0)
+}
 
 function normalizeHeadingText(value: string) {
   return value.replace(/\s+/g, ' ').trim()
@@ -122,10 +149,14 @@ function syncEditorValue(value: string) {
     return
   }
 
-  syncingExternally = true
-  editor.setValue(value)
-  emit('html-change', editor.getHTML())
-  syncingExternally = false
+  beginExternalSync()
+
+  try {
+    editor.setValue(value)
+    emit('html-change', editor.getHTML(), { external: true })
+  } finally {
+    finishExternalSyncSoon()
+  }
 }
 
 onMounted(async () => {
@@ -183,19 +214,25 @@ onMounted(async () => {
       emitActiveRegion()
     },
     blur() {
-      emit('html-change', editor?.getHTML() ?? '')
+      emit('html-change', editor?.getHTML() ?? '', { external: syncingExternally })
     },
     after() {
-      if (props.modelValue) {
-        editor?.setValue(props.modelValue)
-      }
+      beginExternalSync()
 
-      if (props.disabled) {
-        editor?.disabled()
-      }
+      try {
+        if (props.modelValue) {
+          editor?.setValue(props.modelValue)
+        }
 
-      emit('html-change', editor?.getHTML() ?? '')
-      emit('ready')
+        if (props.disabled) {
+          editor?.disabled()
+        }
+
+        emit('html-change', editor?.getHTML() ?? '', { external: true })
+        emit('ready')
+      } finally {
+        finishExternalSyncSoon()
+      }
     }
   })
 
@@ -247,6 +284,7 @@ defineExpose({
 })
 
 onBeforeUnmount(() => {
+  clearExternalSyncTimer()
   editorHost.value?.removeEventListener('pointerup', emitActiveRegion)
   editorHost.value?.removeEventListener('keyup', emitActiveRegion)
   editor?.destroy()

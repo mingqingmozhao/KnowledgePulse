@@ -22,11 +22,11 @@ const router = createRouter({
       }
     },
     {
-      path: '/share/:token',
+      path: '/share/:token?',
       name: 'share',
       component: () => import('@/views/Share.vue'),
       meta: {
-        title: '分享页'
+        title: '分享访问'
       }
     },
     {

@@ -45,6 +45,7 @@ import {
   buildDraftNoteRoute,
   buildNoteEditRoute
 } from '@/utils/noteWorkspace'
+import { buildPublicAppUrl } from '@/utils/publicUrl'
 
 type EditorExpose = {
   setValue: (value: string) => void
@@ -53,6 +54,10 @@ type EditorExpose = {
   focus: () => void
   getActiveRegion?: () => string
   scrollToHeading?: (headingText: string) => boolean
+}
+
+type HtmlChangeMeta = {
+  external?: boolean
 }
 
 type ExportFormat = 'MARKDOWN' | 'WORD' | 'PDF'
@@ -551,6 +556,26 @@ const shareModeSummary = computed(() => {
 
   return '当前未开启分享。'
 })
+const canManageShare = computed(() => noteForm.currentUserCanManage)
+const sharePermissionSummary = computed(() => {
+  if (canManageShare.value) {
+    return shareModeSummary.value
+  }
+
+  const permission = noteForm.currentUserPermission || 'READ'
+  return `你当前是 ${permission} 权限，不能生成、修改或关闭分享链接。只有笔记拥有者或 OWNER 协作者可以管理分享。`
+})
+const shareActionLabel = computed(() => {
+  if (!canManageShare.value) {
+    return '无分享权限'
+  }
+
+  if (shareForm.isPublic !== 0) {
+    return '生成链接'
+  }
+
+  return shareLink.value ? '关闭分享' : '生成公开链接'
+})
 
 const collaboratorHelpText = computed(() => {
   if (canManageCollaborators.value) {
@@ -848,10 +873,31 @@ function createSnapshotFromNote(note: Note): NoteWorkspaceSnapshot {
   }
 }
 
+function areTagListsEqual(leftTags: string[], rightTags: string[]) {
+  const normalizedLeft = [...leftTags].sort((left, right) => left.localeCompare(right, 'zh-CN'))
+  const normalizedRight = [...rightTags].sort((left, right) => left.localeCompare(right, 'zh-CN'))
+
+  return (
+    normalizedLeft.length === normalizedRight.length &&
+    normalizedLeft.every((tag, index) => tag === normalizedRight[index])
+  )
+}
+
+function isSnapshotSameAsPersistedNote(snapshot: NoteWorkspaceSnapshot, note: Note) {
+  return (
+    snapshot.id === note.id &&
+    snapshot.title.trim() === note.title.trim() &&
+    normalizeAttachmentLinks(snapshot.content ?? '') === normalizeAttachmentLinks(note.content ?? '') &&
+    (snapshot.folderId ?? null) === (note.folderId ?? null) &&
+    areTagListsEqual(normalizeTags(snapshot.tagsText), normalizeTags((note.tags ?? []).join(', ')))
+  )
+}
+
 function applySnapshot(snapshot: NoteWorkspaceSnapshot) {
   hydratingForm.value = true
   const normalizedContent = normalizeAttachmentLinks(snapshot.content)
   const normalizedHtmlContent = normalizeAttachmentLinks(snapshot.htmlContent)
+  const snapshotDirty = snapshot.dirty
 
   noteForm.id = snapshot.id
   noteForm.title = snapshot.title
@@ -883,10 +929,14 @@ function applySnapshot(snapshot: NoteWorkspaceSnapshot) {
   activeUsers.value = []
   lastSavedAt.value = snapshot.lastSavedAt
   lastSyncMessage.value = ''
-  dirty.value = snapshot.dirty
+  dirty.value = snapshotDirty
 
-  hydratingForm.value = false
   editorRef.value?.setValue(normalizedContent)
+  window.setTimeout(() => {
+    hydratingForm.value = false
+    dirty.value = snapshotDirty
+    syncActiveTabMeta()
+  }, 0)
 }
 
 function applyNote(note: Note) {
@@ -1308,7 +1358,13 @@ function connectRealtime() {
 }
 
 function handleEditorInput(value: string) {
+  const contentChanged = value !== noteForm.content
   noteForm.content = value
+
+  if (hydratingForm.value || !contentChanged) {
+    return
+  }
+
   setActiveEditingRegion(editorRef.value?.getActiveRegion?.() || activeEditingRegion.value)
   lastLocalInputAt.value = Date.now()
   markDirty(true)
@@ -1325,8 +1381,14 @@ function handleTitleEditing() {
   publishTyping('标题')
 }
 
-function handleHtmlChange(value: string) {
+function handleHtmlChange(value: string, meta?: HtmlChangeMeta) {
+  const htmlChanged = value !== noteForm.htmlContent
   noteForm.htmlContent = value
+
+  if (hydratingForm.value || meta?.external || !htmlChanged) {
+    return
+  }
+
   markDirty(true)
   scheduleLocalWorkspaceSnapshot()
 }
@@ -1490,9 +1552,28 @@ async function loadPage() {
     }
 
     if (workspaceTab.snapshot) {
-      applySnapshot(workspaceTab.snapshot)
+      let snapshotToApply = workspaceTab.snapshot
+      let shouldCheckRestoreNotice = true
+
+      if (routeNoteId.value && workspaceTab.snapshot.dirty) {
+        try {
+          const persistedNote = await getNoteById(routeNoteId.value)
+
+          if (isSnapshotSameAsPersistedNote(workspaceTab.snapshot, persistedNote)) {
+            snapshotToApply = createSnapshotFromNote(persistedNote)
+            noteWorkspaceStore.saveSnapshot(workspaceTab.key, snapshotToApply)
+            shouldCheckRestoreNotice = false
+          }
+        } catch {
+          // Keep the local snapshot if the server note cannot be compared.
+        }
+      }
+
+      applySnapshot(snapshotToApply)
       syncActiveTabMeta()
-      maybeShowRestoredDraftNotice(workspaceTab)
+      if (shouldCheckRestoreNotice) {
+        maybeShowRestoredDraftNotice(workspaceTab)
+      }
 
       if (noteForm.id) {
         await Promise.all([loadVersions(), loadCollaborators(), loadNoteGraph(), loadComments()])
@@ -2069,25 +2150,38 @@ function openAttachmentCenter() {
 }
 
 async function createShare() {
+  if (noteForm.id && !canManageShare.value) {
+    ElMessage.warning('当前账号没有这篇笔记的分享管理权限')
+    return
+  }
+
   const ready = await ensurePersistedNote()
 
   if (!ready || !noteForm.id) {
     return
   }
 
-  if (shareForm.isPublic === 0) {
+  if (!canManageShare.value) {
+    ElMessage.warning('当前账号没有这篇笔记的分享管理权限')
+    return
+  }
+
+  const requestedShareMode = shareForm.isPublic === 0 && !shareLink.value ? 1 : shareForm.isPublic
+
+  if (requestedShareMode === 0) {
     await closeShare()
     return
   }
 
   try {
     const urlPath = await generateShareLink(noteForm.id, {
-      isPublic: shareForm.isPublic,
+      isPublic: requestedShareMode,
       password: shareForm.password || undefined
     })
 
-    shareLink.value = urlPath.startsWith('http') ? urlPath : `${window.location.origin}${urlPath}`
-    noteForm.isPublic = shareForm.isPublic
+    shareLink.value = buildPublicAppUrl(urlPath)
+    shareForm.isPublic = requestedShareMode
+    noteForm.isPublic = requestedShareMode
     persistActiveTabSnapshot()
     ElMessage.success('分享链接已生成')
   } catch (error) {
@@ -2110,6 +2204,11 @@ async function copyShareLink() {
 }
 
 async function closeShare() {
+  if (noteForm.id && !canManageShare.value) {
+    ElMessage.warning('当前账号没有这篇笔记的分享管理权限')
+    return
+  }
+
   if (!noteForm.id) {
     shareForm.isPublic = 0
     shareForm.password = ''
@@ -2666,7 +2765,7 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
         >
           <el-form label-position="top" class="rail-card__form">
             <el-form-item label="访问范围">
-              <el-select v-model="shareForm.isPublic">
+              <el-select v-model="shareForm.isPublic" :disabled="!canManageShare">
                 <el-option
                   v-for="option in shareModeOptions"
                   :key="option.value"
@@ -2681,6 +2780,7 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
                 v-model="shareForm.password"
                 type="password"
                 show-password
+                :disabled="!canManageShare"
                 placeholder="如果需要额外口令，可在这里设置"
               />
             </el-form-item>
@@ -2694,14 +2794,16 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
           </div>
 
           <div class="rail-card__actions">
-            <el-button type="primary" @click="createShare">
-              {{ shareForm.isPublic === 0 ? '关闭分享' : '生成链接' }}
+            <el-button type="primary" :disabled="!canManageShare" @click="createShare">
+              {{ shareActionLabel }}
             </el-button>
-            <el-button plain @click="copyShareLink">复制链接</el-button>
-            <el-button plain @click="closeShare">清空分享</el-button>
+            <el-button plain :disabled="!shareLink" @click="copyShareLink">复制链接</el-button>
+            <el-button plain :disabled="!canManageShare" @click="closeShare">清空分享</el-button>
           </div>
 
-          <p class="rail-card__note">{{ shareModeSummary }}</p>
+          <p class="rail-card__note" :class="{ 'rail-card__note--warning': !canManageShare }">
+            {{ sharePermissionSummary }}
+          </p>
           <p class="rail-card__note">{{ shareLink || '还没有生成分享链接' }}</p>
         </CollapsiblePanel>
 
@@ -3543,6 +3645,15 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
   word-break: break-all;
   color: var(--text-soft);
   line-height: 1.7;
+}
+
+.rail-card__note--warning {
+  padding: 12px 14px;
+  border: 1px solid rgba(184, 92, 56, 0.18);
+  border-radius: 16px;
+  background: rgba(184, 92, 56, 0.08);
+  color: var(--accent-strong);
+  word-break: break-word;
 }
 
 .rail-card__modes,

@@ -82,7 +82,19 @@ export interface InspirationResponse {
   date: string
   recommendedTags: string[]
   relatedNotes: Note[]
+  recommendations: InspirationMatch[]
+  inspirationPrompts: string[]
+  matchSummary: string
   inspirationQuote: string
+}
+
+export interface InspirationMatch {
+  noteId: number
+  title: string
+  matchedTags: string[]
+  score: number
+  reason: string
+  updateTime?: string | null
 }
 
 export interface SearchResult {
@@ -131,6 +143,7 @@ export interface ImportResponse {
   tags: string[]
   warnings: string[]
   notes: ImportedNoteItem[]
+  attachments?: AttachmentItem[]
 }
 
 export interface NoteVersion {

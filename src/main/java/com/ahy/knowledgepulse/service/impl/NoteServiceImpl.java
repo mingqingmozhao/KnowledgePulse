@@ -38,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -382,8 +383,8 @@ public class NoteServiceImpl implements NoteService {
         ExportPayload payload = switch (normalizedFormat) {
             case "WORD", "DOC", "DOCX" -> new ExportPayload(
                     buildFileName(response.getTitle(), "doc"),
-                    "application/msword",
-                    buildWordDocument(response).getBytes(StandardCharsets.UTF_8)
+                    "application/msword; charset=UTF-8",
+                    withUtf8Bom(buildExportHtml(response))
             );
             case "PDF" -> new ExportPayload(
                     buildFileName(response.getTitle(), "pdf"),
@@ -392,8 +393,8 @@ public class NoteServiceImpl implements NoteService {
             );
             case "MARKDOWN", "MD" -> new ExportPayload(
                     buildFileName(response.getTitle(), "md"),
-                    "text/markdown",
-                    response.getContent().getBytes(StandardCharsets.UTF_8)
+                    "text/markdown; charset=UTF-8",
+                    withUtf8Bom(defaultContent(response.getContent()))
             );
             default -> throw new BusinessException(400, "Unsupported export format");
         };
@@ -593,11 +594,36 @@ public class NoteServiceImpl implements NoteService {
         return safeTitle + "." + extension;
     }
 
-    private String buildWordDocument(NoteResponse note) {
+    private byte[] withUtf8Bom(String content) {
+        byte[] body = defaultContent(content).getBytes(StandardCharsets.UTF_8);
+        byte[] result = new byte[body.length + 3];
+        result[0] = (byte) 0xEF;
+        result[1] = (byte) 0xBB;
+        result[2] = (byte) 0xBF;
+        System.arraycopy(body, 0, result, 3, body.length);
+        return result;
+    }
+
+    private String buildExportHtml(NoteResponse note) {
         String html = StringUtils.hasText(note.getHtmlContent())
                 ? note.getHtmlContent()
                 : "<pre>" + escapeHtml(note.getContent()) + "</pre>";
-        return "<!DOCTYPE html><html><head><meta charset=\"utf-8\" /><title>"
+        return "<!DOCTYPE html><html><head>"
+                + "<meta charset=\"UTF-8\" />"
+                + "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />"
+                + "<style>"
+                + "@page{margin:24mm 18mm;}"
+                + "body{font-family:\"Noto Sans SC\",\"Microsoft YaHei\",\"SimHei\",\"DengXian\",sans-serif;color:#1f2933;line-height:1.75;font-size:14px;}"
+                + "h1{font-size:28px;margin:0 0 18px;color:#102a43;}"
+                + "h2,h3{color:#243b53;margin-top:24px;}"
+                + "p{margin:8px 0;}"
+                + "pre{white-space:pre-wrap;word-break:break-word;background:#f6f8fb;border:1px solid #d9e2ec;border-radius:10px;padding:14px;}"
+                + "code{font-family:\"Cascadia Mono\",\"Consolas\",monospace;background:#f6f8fb;border-radius:4px;padding:2px 4px;}"
+                + "blockquote{border-left:4px solid #8aa4c0;margin:12px 0;padding:8px 14px;background:#f7fafc;color:#486581;}"
+                + "table{border-collapse:collapse;width:100%;margin:12px 0;}"
+                + "th,td{border:1px solid #bcccdc;padding:8px 10px;}"
+                + "img{max-width:100%;height:auto;}"
+                + "</style><title>"
                 + escapeHtml(note.getTitle())
                 + "</title></head><body><h1>"
                 + escapeHtml(note.getTitle())
@@ -610,13 +636,35 @@ public class NoteServiceImpl implements NoteService {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             PdfRendererBuilder builder = new PdfRendererBuilder();
             builder.useFastMode();
-            builder.withHtmlContent(buildWordDocument(note), null);
+            registerPdfFonts(builder);
+            builder.withHtmlContent(buildExportHtml(note), null);
             builder.toStream(outputStream);
             builder.run();
             return outputStream.toByteArray();
         } catch (Exception ex) {
             throw new BusinessException(500, "Failed to export PDF: " + ex.getMessage());
         }
+    }
+
+    private void registerPdfFonts(PdfRendererBuilder builder) {
+        List<ExportFont> fonts = List.of(
+                new ExportFont("Noto Sans SC", "C:\\Windows\\Fonts\\NotoSansSC.ttf"),
+                new ExportFont("SimHei", "C:\\Windows\\Fonts\\simhei.ttf"),
+                new ExportFont("DengXian", "C:\\Windows\\Fonts\\Deng.ttf"),
+                new ExportFont("Noto Serif SC", "C:\\Windows\\Fonts\\NotoSerifSC.ttf"),
+                new ExportFont("Noto Sans CJK SC", "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.otf"),
+                new ExportFont("WenQuanYi Micro Hei", "/usr/share/fonts/truetype/wqy/wqy-microhei.ttf")
+        );
+
+        for (ExportFont font : fonts) {
+            File file = new File(font.path());
+            if (file.isFile()) {
+                builder.useFont(file, font.family());
+            }
+        }
+    }
+
+    private record ExportFont(String family, String path) {
     }
 
     private String escapeHtml(String value) {

@@ -38,6 +38,7 @@ jwt:
   refresh-expiration: 604800000
 
 knowledgepulse:
+  public-app-url: https://knowledgepulse.example.test
   attachment-storage-dir: target/test-attachments
 
 knife4j:

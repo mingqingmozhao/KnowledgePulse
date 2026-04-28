@@ -102,11 +102,61 @@ function getHeaderValue(
   return undefined
 }
 
-function decodeFilename(value: string): string {
+function hasCjkText(value: string): boolean {
+  return /[\u3400-\u9fff\uf900-\ufaff]/.test(value)
+}
+
+function decodeRfc2047Filename(value: string): string | null {
+  const match = value.match(/^=\?UTF-8\?([BQ])\?(.+)\?=$/i)
+
+  if (!match) {
+    return null
+  }
+
   try {
-    return decodeURIComponent(value)
+    const mode = match[1].toUpperCase()
+    const encodedValue = match[2]
+
+    if (mode === 'B') {
+      const binary = window.atob(encodedValue)
+      const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
+      return new TextDecoder('utf-8').decode(bytes)
+    }
+
+    const percentEncoded = encodedValue.replace(/_/g, ' ').replace(/=([0-9A-F]{2})/gi, '%$1')
+    return decodeURIComponent(percentEncoded)
   } catch {
-    return value
+    return null
+  }
+}
+
+function decodeMojibakeFilename(value: string): string | null {
+  if (hasCjkText(value)) {
+    return null
+  }
+
+  try {
+    const bytes = Uint8Array.from(Array.from(value), (char) => char.charCodeAt(0) & 0xff)
+    const decoded = new TextDecoder('utf-8', { fatal: true }).decode(bytes)
+    return hasCjkText(decoded) ? decoded : null
+  } catch {
+    return null
+  }
+}
+
+function decodeFilename(value: string): string {
+  const normalizedValue = value.trim().replace(/^"|"$/g, '')
+  const rfc2047Value = decodeRfc2047Filename(normalizedValue)
+
+  if (rfc2047Value) {
+    return rfc2047Value
+  }
+
+  try {
+    const decodedValue = decodeURIComponent(normalizedValue)
+    return decodeMojibakeFilename(decodedValue) ?? decodedValue
+  } catch {
+    return decodeMojibakeFilename(normalizedValue) ?? normalizedValue
   }
 }
 

@@ -1,20 +1,35 @@
 package com.ahy.knowledgepulse.service.impl;
 
+import com.ahy.knowledgepulse.dto.response.AttachmentResponse;
 import com.ahy.knowledgepulse.dto.response.ImportResponse;
 import com.ahy.knowledgepulse.entity.Note;
+import com.ahy.knowledgepulse.entity.NoteAttachmentReference;
 import com.ahy.knowledgepulse.entity.NoteFolder;
 import com.ahy.knowledgepulse.entity.NoteTag;
 import com.ahy.knowledgepulse.entity.NoteVersion;
 import com.ahy.knowledgepulse.exception.BusinessException;
+import com.ahy.knowledgepulse.mapper.NoteAttachmentReferenceMapper;
 import com.ahy.knowledgepulse.mapper.NoteFolderMapper;
 import com.ahy.knowledgepulse.mapper.NoteMapper;
 import com.ahy.knowledgepulse.mapper.NoteTagMapper;
 import com.ahy.knowledgepulse.mapper.NoteVersionMapper;
+import com.ahy.knowledgepulse.service.NoteAttachmentService;
 import com.ahy.knowledgepulse.service.NoteImportService;
 import com.ahy.knowledgepulse.service.OperationLogService;
 import com.ahy.knowledgepulse.util.SecurityUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.poi.hwpf.HWPFDocument;
+import org.apache.poi.hwpf.extractor.WordExtractor;
+import org.apache.poi.xwpf.usermodel.BodyElementType;
+import org.apache.poi.xwpf.usermodel.IBodyElement;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFTable;
+import org.apache.poi.xwpf.usermodel.XWPFTableCell;
+import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -48,16 +63,20 @@ public class NoteImportServiceImpl implements NoteImportService {
     private static final long MAX_IMPORT_BYTES = 50L * 1024 * 1024;
     private static final int MAX_WARNINGS = 12;
     private static final int MAX_TAGS_PER_NOTE = 30;
+    private static final int MAX_EXTRACTED_CHARS = 200_000;
     private static final Pattern FRONT_MATTER_PATTERN = Pattern.compile("\\A---\\R([\\s\\S]*?)\\R---\\R?");
     private static final Pattern H1_PATTERN = Pattern.compile("(?m)^#\\s+(.+?)\\s*$");
     private static final Pattern HASH_TAG_PATTERN = Pattern.compile("(?<![\\p{L}\\p{N}_/-])#([\\p{L}\\p{N}_/-]+)");
     private static final Set<String> SUPPORTED_MODES = Set.of("MARKDOWN_FOLDER", "OBSIDIAN_VAULT", "BATCH_MARKDOWN");
+    private static final Set<String> DOCUMENT_EXTENSIONS = Set.of("pdf", "doc", "docx");
     private static final Set<String> IGNORED_DIRECTORIES = Set.of(".obsidian", ".trash", ".git", "node_modules");
 
     private final NoteMapper noteMapper;
     private final NoteFolderMapper folderMapper;
     private final NoteTagMapper noteTagMapper;
     private final NoteVersionMapper versionMapper;
+    private final NoteAttachmentReferenceMapper attachmentReferenceMapper;
+    private final NoteAttachmentService attachmentService;
     private final OperationLogService operationLogService;
 
     @Override
@@ -140,6 +159,108 @@ public class NoteImportServiceImpl implements NoteImportService {
         return response;
     }
 
+    @Override
+    @Transactional
+    public ImportResponse importDocumentFiles(
+            List<MultipartFile> files,
+            List<String> paths,
+            String rootFolderName,
+            Long targetFolderId,
+            Boolean keepAttachments
+    ) {
+        Long userId = requireCurrentUser();
+        validateTargetFolder(targetFolderId, userId);
+
+        List<UploadItem> uploadItems = buildUploadItems(files, paths);
+        ImportResponse response = new ImportResponse();
+        response.setMode("DOCUMENT_EXTRACT");
+        response.setTotalFiles(uploadItems.size());
+
+        List<UploadItem> documentItems = uploadItems.stream()
+                .sorted(Comparator.comparing(UploadItem::path, String.CASE_INSENSITIVE_ORDER))
+                .filter(item -> isImportableDocument(item, response))
+                .toList();
+
+        if (documentItems.isEmpty()) {
+            throw new BusinessException(400, "没有可抽取的 PDF 或 Word 文件");
+        }
+
+        String commonTopDirectory = detectCommonTopDirectory(documentItems).orElse(null);
+        String resolvedRootName = resolveRootFolderName(rootFolderName, commonTopDirectory, "DOCUMENT_EXTRACT");
+        NoteFolder rootFolder = createFolder(userId, uniqueFolderName(userId, targetFolderId, resolvedRootName), targetFolderId);
+        AtomicInteger createdFolderCount = new AtomicInteger(1);
+        Map<String, Long> folderCache = new HashMap<>();
+        folderCache.put("", rootFolder.getId());
+        Set<String> allTags = new LinkedHashSet<>();
+
+        response.setRootFolderId(rootFolder.getId());
+        response.setRootFolderName(rootFolder.getName());
+
+        for (UploadItem item : documentItems) {
+            try {
+                DocumentExtraction extraction = extractDocument(item);
+                if (!StringUtils.hasText(extraction.text())) {
+                    response.setSkippedFiles(response.getSkippedFiles() + 1);
+                    addWarning(response, "未抽取到文字：" + item.path() + "，如果是扫描版 PDF 需要 OCR 支持");
+                    continue;
+                }
+
+                String extractedText = extraction.text();
+                if (extractedText.length() > MAX_EXTRACTED_CHARS) {
+                    extractedText = trimToLength(extractedText, MAX_EXTRACTED_CHARS);
+                    addWarning(response, "内容过长已截断：" + item.path());
+                }
+
+                AttachmentResponse attachment = null;
+                if (Boolean.TRUE.equals(keepAttachments)) {
+                    try {
+                        attachment = attachmentService.upload(item.file());
+                        response.getAttachments().add(attachment);
+                    } catch (Exception ex) {
+                        addWarning(response, "原文件保留失败：" + item.path());
+                    }
+                }
+
+                String title = sanitizeTitle(fileBaseName(item.path()), "文档导入笔记");
+                List<String> noteTags = normalizeTags(List.of("文档导入", extraction.typeLabel()));
+                Long folderId = resolveFolderId(
+                        userId,
+                        rootFolder.getId(),
+                        folderCache,
+                        folderSegments(item.path(), commonTopDirectory),
+                        createdFolderCount
+                );
+                String content = buildDocumentNoteContent(title, item.path(), extraction.typeLabel(), extractedText, attachment);
+
+                Note note = new Note();
+                note.setUserId(userId);
+                note.setFolderId(folderId);
+                note.setTitle(title);
+                note.setContent(content);
+                note.setHtmlContent(defaultHtml(content));
+                note.setTags(String.join(",", noteTags));
+                note.setIsPublic(0);
+                note.setDeleted(0);
+                noteMapper.insert(note);
+
+                persistTags(note.getId(), noteTags);
+                saveInitialVersion(note);
+                attachReference(note.getId(), attachment);
+                allTags.addAll(noteTags);
+                response.getNotes().add(importedNoteItem(note, item.path(), noteTags));
+            } catch (Exception ex) {
+                response.setSkippedFiles(response.getSkippedFiles() + 1);
+                addWarning(response, "抽取失败：" + item.path());
+            }
+        }
+
+        response.setImportedNotes(response.getNotes().size());
+        response.setCreatedFolders(createdFolderCount.get());
+        response.setTags(new ArrayList<>(allTags));
+        operationLogService.record(userId, "IMPORT", "Extracted " + response.getImportedNotes() + " document notes");
+        return response;
+    }
+
     private Long requireCurrentUser() {
         Long userId = SecurityUtil.getCurrentUserId();
         if (userId == null) {
@@ -174,7 +295,7 @@ public class NoteImportServiceImpl implements NoteImportService {
 
     private List<UploadItem> buildUploadItems(List<MultipartFile> files, List<String> paths) {
         if (files == null || files.isEmpty()) {
-            throw new BusinessException(400, "请选择要导入的 Markdown 文件");
+            throw new BusinessException(400, "请选择要导入的文件");
         }
         if (files.size() > MAX_IMPORT_FILES) {
             throw new BusinessException(400, "一次最多导入 " + MAX_IMPORT_FILES + " 个文件");
@@ -211,6 +332,61 @@ public class NoteImportServiceImpl implements NoteImportService {
         return normalized.endsWith(".md") || normalized.endsWith(".markdown");
     }
 
+    private boolean isImportableDocument(UploadItem item, ImportResponse response) {
+        if (isIgnoredPath(item.path()) || !DOCUMENT_EXTENSIONS.contains(fileExtension(item.path()))) {
+            response.setSkippedFiles(response.getSkippedFiles() + 1);
+            return false;
+        }
+        if (item.file().getSize() <= 0) {
+            response.setSkippedFiles(response.getSkippedFiles() + 1);
+            addWarning(response, "空文件已忽略：" + item.path());
+            return false;
+        }
+        return true;
+    }
+
+    private DocumentExtraction extractDocument(UploadItem item) throws IOException {
+        String extension = fileExtension(item.path());
+        return switch (extension) {
+            case "pdf" -> new DocumentExtraction(normalizeExtractedText(extractPdfText(item.file())), "PDF");
+            case "docx" -> new DocumentExtraction(normalizeExtractedText(extractDocxText(item.file())), "Word");
+            case "doc" -> new DocumentExtraction(normalizeExtractedText(extractDocText(item.file())), "Word");
+            default -> throw new BusinessException(400, "不支持的文档类型");
+        };
+    }
+
+    private String extractPdfText(MultipartFile file) throws IOException {
+        try (PDDocument document = PDDocument.load(file.getInputStream())) {
+            if (document.isEncrypted()) {
+                throw new BusinessException(400, "加密 PDF 暂不支持抽取");
+            }
+            PDFTextStripper stripper = new PDFTextStripper();
+            stripper.setSortByPosition(true);
+            return stripper.getText(document);
+        }
+    }
+
+    private String extractDocxText(MultipartFile file) throws IOException {
+        try (XWPFDocument document = new XWPFDocument(file.getInputStream())) {
+            StringBuilder builder = new StringBuilder();
+            for (IBodyElement element : document.getBodyElements()) {
+                if (element.getElementType() == BodyElementType.PARAGRAPH) {
+                    appendParagraph(builder, ((XWPFParagraph) element).getText());
+                } else if (element.getElementType() == BodyElementType.TABLE) {
+                    appendTable(builder, (XWPFTable) element);
+                }
+            }
+            return builder.toString();
+        }
+    }
+
+    private String extractDocText(MultipartFile file) throws IOException {
+        try (HWPFDocument document = new HWPFDocument(file.getInputStream());
+             WordExtractor extractor = new WordExtractor(document)) {
+            return extractor.getText();
+        }
+    }
+
     private boolean isIgnoredPath(String path) {
         return splitPath(path).stream()
                 .map(segment -> segment.toLowerCase(Locale.ROOT))
@@ -244,6 +420,7 @@ public class NoteImportServiceImpl implements NoteImportService {
         return switch (mode) {
             case "OBSIDIAN_VAULT" -> "Obsidian 导入 " + timestamp;
             case "BATCH_MARKDOWN" -> "批量 Markdown 导入 " + timestamp;
+            case "DOCUMENT_EXTRACT" -> "文档转笔记 " + timestamp;
             default -> "Markdown 导入 " + timestamp;
         };
     }
@@ -437,7 +614,54 @@ public class NoteImportServiceImpl implements NoteImportService {
     private String fileBaseName(String path) {
         List<String> segments = splitPath(path);
         String fileName = segments.isEmpty() ? path : segments.get(segments.size() - 1);
-        return fileName.replaceFirst("(?i)\\.(md|markdown)$", "");
+        return fileName.replaceFirst("\\.[^.]+$", "");
+    }
+
+    private String fileExtension(String path) {
+        List<String> segments = splitPath(path);
+        String fileName = segments.isEmpty() ? path : segments.get(segments.size() - 1);
+        int dotIndex = fileName.lastIndexOf('.');
+        if (dotIndex < 0 || dotIndex == fileName.length() - 1) {
+            return "";
+        }
+        return fileName.substring(dotIndex + 1).toLowerCase(Locale.ROOT);
+    }
+
+    private String buildDocumentNoteContent(
+            String title,
+            String path,
+            String typeLabel,
+            String extractedText,
+            AttachmentResponse attachment
+    ) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("# ").append(title).append("\n\n");
+        builder.append("> 由 ").append(typeLabel).append(" 自动抽取生成，请根据原文校对排版。  \n");
+        builder.append("> 原始文件：").append(escapeMarkdownInline(path));
+        if (attachment != null) {
+            builder.append("  \n> 来源附件：").append(attachmentMarkdown(attachment));
+        }
+        builder.append("\n\n## 提取正文\n\n");
+        builder.append(extractedText);
+        return builder.toString();
+    }
+
+    private String attachmentMarkdown(AttachmentResponse attachment) {
+        String fileUrl = attachment.getFileUrl();
+        String separator = fileUrl != null && fileUrl.contains("?") ? "&" : "?";
+        return "[" + escapeMarkdownLinkText(attachment.getOriginalName()) + "]("
+                + fileUrl + separator + "attachmentId=" + attachment.getId() + ")";
+    }
+
+    private void attachReference(Long noteId, AttachmentResponse attachment) {
+        if (attachment == null || attachment.getId() == null) {
+            return;
+        }
+
+        NoteAttachmentReference reference = new NoteAttachmentReference();
+        reference.setNoteId(noteId);
+        reference.setAttachmentId(attachment.getId());
+        attachmentReferenceMapper.insert(reference);
     }
 
     private void persistTags(Long noteId, List<String> tags) {
@@ -498,11 +722,109 @@ public class NoteImportServiceImpl implements NoteImportService {
         return segments;
     }
 
+    private void appendParagraph(StringBuilder builder, String text) {
+        if (!StringUtils.hasText(text)) {
+            return;
+        }
+        if (!builder.isEmpty()) {
+            builder.append("\n\n");
+        }
+        builder.append(text.trim());
+    }
+
+    private void appendTable(StringBuilder builder, XWPFTable table) {
+        List<List<String>> rows = table.getRows().stream()
+                .map(this::tableRowCells)
+                .filter(cells -> cells.stream().anyMatch(StringUtils::hasText))
+                .toList();
+        if (rows.isEmpty()) {
+            return;
+        }
+        if (!builder.isEmpty()) {
+            builder.append("\n\n");
+        }
+
+        int columnCount = rows.stream().mapToInt(List::size).max().orElse(1);
+        appendTableRow(builder, rows.get(0), columnCount);
+        appendTableSeparator(builder, columnCount);
+        for (int index = 1; index < rows.size(); index++) {
+            appendTableRow(builder, rows.get(index), columnCount);
+        }
+    }
+
+    private List<String> tableRowCells(XWPFTableRow row) {
+        return row.getTableCells().stream()
+                .map(XWPFTableCell::getText)
+                .map(this::normalizeTableCell)
+                .toList();
+    }
+
+    private void appendTableRow(StringBuilder builder, List<String> cells, int columnCount) {
+        builder.append("|");
+        for (int index = 0; index < columnCount; index++) {
+            String cell = index < cells.size() ? cells.get(index) : "";
+            builder.append(" ").append(cell).append(" |");
+        }
+        builder.append("\n");
+    }
+
+    private void appendTableSeparator(StringBuilder builder, int columnCount) {
+        builder.append("|");
+        for (int index = 0; index < columnCount; index++) {
+            builder.append(" --- |");
+        }
+        builder.append("\n");
+    }
+
+    private String normalizeTableCell(String value) {
+        if (!StringUtils.hasText(value)) {
+            return "";
+        }
+        return value.replace("|", "\\|")
+                .replaceAll("\\s+", " ")
+                .trim();
+    }
+
     private String normalizePath(String path) {
         if (!StringUtils.hasText(path)) {
             return "";
         }
         return String.join("/", splitPath(path.replace("\u0000", "")));
+    }
+
+    private String normalizeExtractedText(String value) {
+        if (!StringUtils.hasText(value)) {
+            return "";
+        }
+        String normalized = value
+                .replace("\r\n", "\n")
+                .replace('\r', '\n')
+                .replace('\u00A0', ' ')
+                .replaceAll("[\\t ]+\\n", "\n")
+                .replaceAll("\\n{3,}", "\n\n")
+                .trim();
+        return normalized;
+    }
+
+    private String escapeMarkdownInline(String value) {
+        if (!StringUtils.hasText(value)) {
+            return "";
+        }
+        return value.replace("\n", " ")
+                .replace("\r", " ")
+                .replace("|", "\\|")
+                .trim();
+    }
+
+    private String escapeMarkdownLinkText(String value) {
+        if (!StringUtils.hasText(value)) {
+            return "来源附件";
+        }
+        return value.replace("[", "")
+                .replace("]", "")
+                .replace("\n", " ")
+                .replace("\r", " ")
+                .trim();
     }
 
     private String readUtf8(MultipartFile file) throws IOException {
@@ -564,5 +886,8 @@ public class NoteImportServiceImpl implements NoteImportService {
     }
 
     private record MarkdownDocument(String content, List<String> tags) {
+    }
+
+    private record DocumentExtraction(String text, String typeLabel) {
     }
 }

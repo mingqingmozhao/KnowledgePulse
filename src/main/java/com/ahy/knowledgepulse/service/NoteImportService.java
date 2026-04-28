@@ -14,4 +14,12 @@ public interface NoteImportService {
             String rootFolderName,
             Long targetFolderId
     );
+
+    ImportResponse importDocumentFiles(
+            List<MultipartFile> files,
+            List<String> paths,
+            String rootFolderName,
+            Long targetFolderId,
+            Boolean keepAttachments
+    );
 }

@@ -39,4 +39,15 @@
         LIMIT 10
     </select>
 
+    <select id="findTopAccessibleTagsByUserId" resultType="java.lang.String">
+        SELECT t.tag_name FROM note_tag t
+        JOIN note n ON t.note_id = n.id
+        LEFT JOIN note_collaborator nc ON n.id = nc.note_id
+        WHERE n.is_deleted = 0
+          AND (n.user_id = #{userId} OR nc.user_id = #{userId})
+        GROUP BY t.tag_name
+        ORDER BY COUNT(*) DESC, MAX(n.update_time) DESC
+        LIMIT 10
+    </select>
+
 </mapper>

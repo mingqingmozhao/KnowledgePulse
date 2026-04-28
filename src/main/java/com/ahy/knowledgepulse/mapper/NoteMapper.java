@@ -40,9 +40,15 @@ public interface NoteMapper extends BaseMapper<Note> {
 
     List<Note> findRecentNotes(@Param("userId") Long userId, @Param("startTime") LocalDateTime startTime);
 
+    List<Note> findAccessibleRecentNotes(@Param("userId") Long userId, @Param("startTime") LocalDateTime startTime);
+
     List<Note> findNotesWithTag(@Param("userId") Long userId, @Param("tagName") String tagName);
 
     List<Note> findAccessibleNotesWithTag(@Param("userId") Long userId, @Param("tagName") String tagName);
+
+    List<Note> findAccessibleNotesByTags(@Param("userId") Long userId, @Param("tags") List<String> tags);
+
+    LocalDateTime findLatestAccessibleUpdateTime(@Param("userId") Long userId);
 
     List<Note> findDeletedByUserId(Long userId);
 

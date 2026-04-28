@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import { getSharedNote } from '@/api/share'
 import { useAuthStore } from '@/stores/auth'
 import type { Note } from '@/types'
 import { escapeHtml, formatDateTime } from '@/utils/format'
+import { buildPublicShareUrl } from '@/utils/publicUrl'
 
 const route = useRoute()
 const router = useRouter()
@@ -13,15 +14,56 @@ const authStore = useAuthStore()
 
 const loading = ref(false)
 const password = ref('')
+const shareInput = ref('')
 const note = ref<Note | null>(null)
 const errorMessage = ref('')
 const requiresPassword = ref(false)
 const requiresLogin = ref(false)
 
-const token = computed(() => String(route.params.token))
+const token = computed(() => {
+  const raw = route.params.token
+  return typeof raw === 'string' ? raw.trim() : ''
+})
+const hasToken = computed(() => Boolean(token.value))
 const fallbackHtml = computed(() => `<pre>${escapeHtml(note.value?.content || '')}</pre>`)
+const currentShareLink = computed(() => (hasToken.value ? buildPublicShareUrl(token.value) : ''))
+
+function extractShareToken(value: string) {
+  const trimmed = value.trim().replace(/^<|>$/g, '')
+
+  if (!trimmed) {
+    return ''
+  }
+
+  try {
+    const url = new URL(trimmed, window.location.origin)
+    const segments = url.pathname.split('/').filter(Boolean)
+    const shareIndex = segments.findIndex((segment) => segment.toLowerCase() === 'share')
+
+    if (shareIndex >= 0) {
+      return decodeURIComponent(segments[shareIndex + 1] || '')
+    }
+
+    return decodeURIComponent(segments.at(-1) || '')
+  } catch {
+    return trimmed.split(/[/?#]/).filter(Boolean).at(-1) || ''
+  }
+}
+
+function resetSharedContent() {
+  note.value = null
+  errorMessage.value = ''
+  requiresPassword.value = false
+  requiresLogin.value = false
+  loading.value = false
+}
 
 async function loadSharedContent() {
+  if (!token.value) {
+    resetSharedContent()
+    return
+  }
+
   loading.value = true
   errorMessage.value = ''
   requiresPassword.value = false
@@ -41,9 +83,23 @@ async function loadSharedContent() {
   }
 }
 
-onMounted(() => {
-  void loadSharedContent()
-})
+function openSharedLink() {
+  const nextToken = extractShareToken(shareInput.value)
+
+  if (!nextToken) {
+    ElMessage.warning('请先粘贴分享链接或输入分享码')
+    return
+  }
+
+  password.value = ''
+
+  if (nextToken === token.value) {
+    void loadSharedContent()
+    return
+  }
+
+  void router.push(`/share/${encodeURIComponent(nextToken)}`)
+}
 
 async function submitPassword() {
   if (!password.value.trim()) {
@@ -58,22 +114,82 @@ function goToLogin() {
   void router.push({
     path: '/login',
     query: {
-      redirect: `/share/${token.value}`
+      redirect: `/share/${encodeURIComponent(token.value)}`
     }
   })
 }
+
+function goHome() {
+  void router.push(authStore.isAuthenticated ? '/dashboard' : '/login')
+}
+
+watch(
+  token,
+  (value) => {
+    password.value = ''
+
+    if (!value) {
+      shareInput.value = ''
+      resetSharedContent()
+      return
+    }
+
+    shareInput.value = buildPublicShareUrl(value)
+    void loadSharedContent()
+  },
+  {
+    immediate: true
+  }
+)
 </script>
 
 <template>
   <div class="share-page">
     <div class="share-page__container">
       <header class="share-page__hero panel">
-        <span class="section-kicker">Shared Note</span>
-        <h1>{{ note?.title || '共享知识卡片' }}</h1>
-        <p>这里用于查看公开分享、密码保护分享，以及登录后可见的知识内容。</p>
+        <div>
+          <span class="section-kicker">Shared Note</span>
+          <h1>{{ note?.title || '查看别人分享的笔记' }}</h1>
+          <p>
+            不用再去浏览器地址栏手动输入。把别人发来的完整分享链接、/share/xxx 路径或分享码粘贴到下面，就能在这里查看内容。
+          </p>
+        </div>
+        <el-button plain @click="goHome">
+          {{ authStore.isAuthenticated ? '回到工作台' : '去登录' }}
+        </el-button>
       </header>
 
-      <section v-if="loading" class="share-page__content panel">
+      <section class="share-page__opener panel">
+        <div class="share-page__opener-copy">
+          <span class="section-kicker">Open Share</span>
+          <strong>粘贴分享链接或分享码</strong>
+          <p>支持完整链接、局域网/ngrok 链接、/share/xxx 路径，也支持只输入最后那段分享码。</p>
+        </div>
+
+        <div class="share-page__input-row">
+          <el-input
+            v-model="shareInput"
+            clearable
+            placeholder="例如：http://localhost:5173/share/abc123 或 abc123"
+            @keyup.enter="openSharedLink"
+          />
+          <el-button type="primary" @click="openSharedLink">查看分享</el-button>
+        </div>
+
+        <div v-if="hasToken" class="share-page__current-link">
+          <span>当前分享</span>
+          <code>{{ currentShareLink }}</code>
+        </div>
+      </section>
+
+      <section v-if="!hasToken" class="share-page__content panel">
+        <div class="share-page__empty-guide">
+          <strong>等待打开一个分享</strong>
+          <p>你可以从聊天窗口、邮件或系统通知里复制分享链接，然后直接粘贴到上面的输入框。</p>
+        </div>
+      </section>
+
+      <section v-else-if="loading" class="share-page__content panel">
         <div class="empty-state">分享内容加载中...</div>
       </section>
 
@@ -93,7 +209,7 @@ function goToLogin() {
           <strong>{{ errorMessage || '该分享内容暂时不可访问。' }}</strong>
 
           <template v-if="requiresLogin">
-            <p>这是一个“登录可见”分享链接。登录后会自动带你回到当前页面继续查看。</p>
+            <p>这是一个“登录可见”分享。登录后系统会自动带你回到当前分享页继续查看。</p>
             <el-button type="primary" @click="goToLogin">
               {{ authStore.isAuthenticated ? '重新登录' : '前往登录' }}
             </el-button>
@@ -130,18 +246,23 @@ function goToLogin() {
 }
 
 .share-page__container {
-  width: min(980px, 100%);
-  margin: 0 auto;
   display: grid;
+  width: min(980px, 100%);
   gap: 24px;
+  margin: 0 auto;
 }
 
 .share-page__hero,
+.share-page__opener,
 .share-page__content {
   padding: 28px 30px;
 }
 
 .share-page__hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 22px;
   background:
     radial-gradient(circle at top right, rgba(197, 157, 88, 0.22), transparent 30%),
     linear-gradient(160deg, rgba(255, 252, 247, 0.96), rgba(241, 232, 219, 0.88));
@@ -153,10 +274,59 @@ function goToLogin() {
   font-size: clamp(2rem, 3vw, 3rem);
 }
 
-.share-page__hero p {
+.share-page__hero p,
+.share-page__opener-copy p {
   margin: 12px 0 0;
   color: var(--text-soft);
   line-height: 1.8;
+}
+
+.share-page__opener {
+  display: grid;
+  gap: 18px;
+  background:
+    radial-gradient(circle at top left, rgba(54, 92, 75, 0.12), transparent 34%),
+    rgba(255, 255, 255, 0.72);
+}
+
+.share-page__opener-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.share-page__opener-copy strong {
+  font-size: 1.15rem;
+}
+
+.share-page__input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+}
+
+.share-page__current-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(54, 92, 75, 0.14);
+  border-radius: 16px;
+  background: rgba(54, 92, 75, 0.07);
+  color: #365c4b;
+}
+
+.share-page__current-link span {
+  flex: 0 0 auto;
+  font-weight: 700;
+}
+
+.share-page__current-link code {
+  overflow: hidden;
+  min-width: 0;
+  color: var(--text-main);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .share-page__meta {
@@ -178,12 +348,24 @@ function goToLogin() {
   min-height: 320px;
 }
 
+.share-page__empty-guide,
 .share-page__locked {
   display: grid;
   gap: 14px;
   text-align: center;
 }
 
+.share-page__empty-guide {
+  min-height: 220px;
+  place-content: center;
+  border: 1px dashed rgba(141, 69, 41, 0.18);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at center, rgba(184, 92, 56, 0.08), transparent 44%),
+    rgba(255, 255, 255, 0.48);
+}
+
+.share-page__empty-guide p,
 .share-page__locked p,
 .share-page__hint {
   margin: 0;
@@ -193,8 +375,8 @@ function goToLogin() {
 
 .share-page__password {
   display: flex;
-  gap: 12px;
   width: min(460px, 100%);
+  gap: 12px;
   margin: 8px auto 0;
 }
 
@@ -204,14 +386,20 @@ function goToLogin() {
   }
 
   .share-page__hero,
+  .share-page__opener,
   .share-page__content {
     padding: 22px;
   }
 
+  .share-page__hero,
   .share-page__meta,
   .share-page__password {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .share-page__input-row {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -225,6 +413,7 @@ function goToLogin() {
   }
 
   .share-page__hero,
+  .share-page__opener,
   .share-page__content {
     padding: 16px;
   }
@@ -235,6 +424,8 @@ function goToLogin() {
   }
 
   .share-page__hero p,
+  .share-page__opener-copy p,
+  .share-page__empty-guide p,
   .share-page__locked p,
   .share-page__hint {
     line-height: 1.65;

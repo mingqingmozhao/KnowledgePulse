@@ -1,14 +1,24 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import PageHero from '@/components/PageHero.vue'
-import { importMarkdownFiles, type ImportableFile } from '@/api/import'
+import { uploadAttachment } from '@/api/attachment'
+import { importDocumentsAsNotes, importMarkdownFiles, type ImportableFile } from '@/api/import'
 import { useWorkspaceStore } from '@/stores/workspace'
-import type { ImportMode, ImportResponse } from '@/types'
+import type { AttachmentItem, ImportMode, ImportResponse } from '@/types'
+import {
+  MAX_ATTACHMENT_BYTES,
+  attachmentIcon,
+  attachmentTypeLabel,
+  formatFileSize,
+  isSupportedAttachmentFile
+} from '@/utils/attachment'
+
+type ImportCenterMode = ImportMode | 'ATTACHMENTS'
 
 type ModeCard = {
-  value: ImportMode
+  value: ImportCenterMode
   title: string
   kicker: string
   description: string
@@ -20,12 +30,17 @@ const workspaceStore = useWorkspaceStore()
 
 const directoryInputRef = ref<HTMLInputElement | null>(null)
 const batchInputRef = ref<HTMLInputElement | null>(null)
-const mode = ref<ImportMode>('OBSIDIAN_VAULT')
+const attachmentInputRef = ref<HTMLInputElement | null>(null)
+const mode = ref<ImportCenterMode>('OBSIDIAN_VAULT')
 const selectedFiles = ref<ImportableFile[]>([])
 const rootFolderName = ref('Obsidian 导入')
 const targetFolderId = ref<number | null>(null)
 const importing = ref(false)
 const result = ref<ImportResponse | null>(null)
+const uploadedAttachments = ref<AttachmentItem[]>([])
+const attachmentWarnings = ref<string[]>([])
+const extractDocuments = ref(false)
+const keepOriginalDocuments = ref(true)
 
 const modeCards: ModeCard[] = [
   {
@@ -48,28 +63,46 @@ const modeCards: ModeCard[] = [
     title: '批量 Markdown 文件',
     description: '不需要目录结构时，直接多选 .md 或 .markdown 文件快速导入。',
     buttonText: '选择多个文件'
+  },
+  {
+    value: 'ATTACHMENTS',
+    kicker: 'Assets',
+    title: '附件批量导入',
+    description: '图片、PDF、Word 统一上传到附件中心，之后可在笔记里插入引用。',
+    buttonText: '选择附件文件'
   }
 ]
 
 const activeModeCard = computed(() => modeCards.find((item) => item.value === mode.value) ?? modeCards[0])
 const markdownFiles = computed(() => selectedFiles.value.filter((file) => isMarkdownPath(relativePathOf(file))))
-const skippedClientCount = computed(() => selectedFiles.value.length - markdownFiles.value.length)
-const totalSize = computed(() => markdownFiles.value.reduce((sum, file) => sum + file.size, 0))
+const supportedAttachmentFiles = computed(() =>
+  selectedFiles.value.filter((file) => !isMarkdownPath(relativePathOf(file)) && isSupportedAttachmentFile(file))
+)
+const oversizedAttachmentFiles = computed(() =>
+  supportedAttachmentFiles.value.filter((file) => file.size > MAX_ATTACHMENT_BYTES)
+)
+const attachmentFiles = computed(() =>
+  supportedAttachmentFiles.value.filter((file) => file.size <= MAX_ATTACHMENT_BYTES)
+)
+const documentFiles = computed(() =>
+  attachmentFiles.value.filter((file) => ['PDF', 'WORD'].includes(attachmentFileType(file)))
+)
+const extractedDocumentFiles = computed(() => (extractDocuments.value ? documentFiles.value : []))
+const directAttachmentFiles = computed(() =>
+  extractDocuments.value
+    ? attachmentFiles.value.filter((file) => attachmentFileType(file) === 'IMAGE')
+    : attachmentFiles.value
+)
+const unsupportedClientCount = computed(
+  () => selectedFiles.value.length - markdownFiles.value.length - supportedAttachmentFiles.value.length
+)
+const skippedClientCount = computed(
+  () => unsupportedClientCount.value + oversizedAttachmentFiles.value.length
+)
+const totalSize = computed(() =>
+  [...markdownFiles.value, ...attachmentFiles.value].reduce((sum, file) => sum + file.size, 0)
+)
 const commonTopDirectory = computed(() => detectCommonTopDirectory(markdownFiles.value))
-const directoryCount = computed(() => {
-  const directories = new Set<string>()
-
-  markdownFiles.value.forEach((file) => {
-    const segments = logicalSegments(relativePathOf(file))
-    segments.pop()
-
-    if (segments.length) {
-      directories.add(segments.join('/'))
-    }
-  })
-
-  return directories.size
-})
 const previewGroups = computed(() => {
   const groups = new Map<string, number>()
 
@@ -86,13 +119,72 @@ const previewGroups = computed(() => {
     .slice(0, 8)
 })
 const previewFiles = computed(() => markdownFiles.value.slice(0, 9))
-const canImport = computed(() => markdownFiles.value.length > 0 && rootFolderName.value.trim().length > 0 && !importing.value)
-const pageDescription = computed(() => {
-  if (!markdownFiles.value.length) {
-    return '把 Markdown 文件夹、Obsidian vault 或多篇 Markdown 一次性导入，目录、标题和标签会自动对齐到系统里。'
+const previewAttachments = computed(() => attachmentFiles.value.slice(0, 9))
+const canImport = computed(() => {
+  if (importing.value) {
+    return false
   }
 
-  return `已准备 ${markdownFiles.value.length} 个 Markdown 文件，导入后会放入「${rootFolderName.value || '新的导入文件夹'}」。`
+  if (markdownFiles.value.length > 0 && rootFolderName.value.trim().length === 0) {
+    return false
+  }
+
+  if (extractedDocumentFiles.value.length > 0 && rootFolderName.value.trim().length === 0) {
+    return false
+  }
+
+  return markdownFiles.value.length > 0 || attachmentFiles.value.length > 0
+})
+const hasImportResult = computed(
+  () => Boolean(result.value) || uploadedAttachments.value.length > 0 || attachmentWarnings.value.length > 0
+)
+const resultWarnings = computed(() => [
+  ...(result.value?.warnings ?? []),
+  ...attachmentWarnings.value
+])
+const importButtonText = computed(() => {
+  const parts = [
+    markdownFiles.value.length + extractedDocumentFiles.value.length
+      ? `${markdownFiles.value.length + extractedDocumentFiles.value.length} 篇笔记`
+      : '',
+    directAttachmentFiles.value.length || (extractedDocumentFiles.value.length && keepOriginalDocuments.value)
+      ? `${directAttachmentFiles.value.length + (keepOriginalDocuments.value ? extractedDocumentFiles.value.length : 0)} 个附件`
+      : ''
+  ].filter(Boolean)
+
+  return parts.length ? `导入 ${parts.join(' + ')}` : '开始导入'
+})
+const resultSummaryText = computed(() => {
+  const parts = [
+    result.value ? `已导入 ${result.value.importedNotes} 篇笔记` : '',
+    result.value ? `创建 ${result.value.createdFolders} 个文件夹` : '',
+    uploadedAttachments.value.length ? `上传 ${uploadedAttachments.value.length} 个附件` : '',
+    result.value?.skippedFiles ? `${result.value.skippedFiles} 个 Markdown 文件被忽略` : ''
+  ].filter(Boolean)
+
+  return parts.length ? `${parts.join('，')}。` : '导入任务已结束。'
+})
+const pageDescription = computed(() => {
+  if (!markdownFiles.value.length && !attachmentFiles.value.length) {
+    return '把 Markdown、Obsidian vault、图片、PDF 和 Word 从一个入口导入：笔记归档到文件夹，资料进入附件中心。'
+  }
+
+  if (markdownFiles.value.length && attachmentFiles.value.length) {
+    if (extractedDocumentFiles.value.length) {
+      return `已准备 ${markdownFiles.value.length} 篇 Markdown、${extractedDocumentFiles.value.length} 个待抽取文档和 ${directAttachmentFiles.value.length} 个普通附件。`
+    }
+    return `已准备 ${markdownFiles.value.length} 篇 Markdown 和 ${attachmentFiles.value.length} 个附件，导入后会分别进入笔记库和附件中心。`
+  }
+
+  if (markdownFiles.value.length) {
+    return `已准备 ${markdownFiles.value.length} 个 Markdown 文件，导入后会放入「${rootFolderName.value || '新的导入文件夹'}」。`
+  }
+
+  if (extractedDocumentFiles.value.length) {
+    return `已准备 ${extractedDocumentFiles.value.length} 个 PDF/Word 文档，导入后会抽取为可编辑笔记。`
+  }
+
+  return `已准备 ${attachmentFiles.value.length} 个附件，上传后可在附件中心统一管理并插入笔记。`
 })
 
 onMounted(() => {
@@ -101,7 +193,13 @@ onMounted(() => {
   }
 })
 
-function selectMode(nextMode: ImportMode) {
+watch(extractDocuments, (enabled) => {
+  if (enabled && documentFiles.value.length && (!rootFolderName.value || rootFolderName.value === '附件批量导入')) {
+    rootFolderName.value = '文档转笔记'
+  }
+})
+
+function selectMode(nextMode: ImportCenterMode) {
   mode.value = nextMode
 
   if (!selectedFiles.value.length) {
@@ -109,11 +207,16 @@ function selectMode(nextMode: ImportMode) {
   }
 }
 
-function triggerPicker(nextMode: ImportMode) {
+function triggerPicker(nextMode: ImportCenterMode) {
   selectMode(nextMode)
 
   if (nextMode === 'BATCH_MARKDOWN') {
     batchInputRef.value?.click()
+    return
+  }
+
+  if (nextMode === 'ATTACHMENTS') {
+    attachmentInputRef.value?.click()
     return
   }
 
@@ -125,6 +228,10 @@ function handleDirectoryChange(event: Event) {
 }
 
 function handleBatchChange(event: Event) {
+  applySelectedFiles(event)
+}
+
+function handleAttachmentChange(event: Event) {
   applySelectedFiles(event)
 }
 
@@ -143,47 +250,89 @@ function handleDrop(event: DragEvent) {
     return
   }
 
-  mode.value = 'BATCH_MARKDOWN'
+  mode.value = files.some((file) => isMarkdownPath(relativePathOf(file))) ? 'BATCH_MARKDOWN' : 'ATTACHMENTS'
   applyFiles(files)
 }
 
 function applyFiles(files: ImportableFile[]) {
   selectedFiles.value = files
   result.value = null
+  uploadedAttachments.value = []
+  attachmentWarnings.value = []
   rootFolderName.value = inferRootName(files)
 
   if (!files.length) {
     return
   }
 
-  const validCount = files.filter((file) => isMarkdownPath(relativePathOf(file))).length
+  const validCount = markdownFiles.value.length + attachmentFiles.value.length
   if (validCount === 0) {
-    ElMessage.warning('没有找到 .md 或 .markdown 文件')
+    ElMessage.warning('没有找到可导入的 Markdown、图片、PDF 或 Word 文件')
     return
   }
 
-  if (validCount !== files.length) {
-    ElMessage.info(`已自动忽略 ${files.length - validCount} 个非 Markdown 文件`)
+  if (oversizedAttachmentFiles.value.length) {
+    ElMessage.warning(`已忽略 ${oversizedAttachmentFiles.value.length} 个超过 25MB 的附件`)
+  }
+
+  if (unsupportedClientCount.value > 0) {
+    ElMessage.info(`已自动忽略 ${unsupportedClientCount.value} 个暂不支持的文件`)
   }
 }
 
 async function submitImport() {
   if (!canImport.value) {
-    ElMessage.warning('请先选择 Markdown 文件，并填写导入后的根文件夹名称')
+    ElMessage.warning('请先选择可导入的 Markdown 或附件文件')
     return
   }
 
   importing.value = true
+  result.value = null
+  uploadedAttachments.value = []
+  attachmentWarnings.value = []
 
   try {
-    result.value = await importMarkdownFiles({
-      files: markdownFiles.value,
-      mode: mode.value,
-      rootFolderName: rootFolderName.value,
-      targetFolderId: targetFolderId.value
-    })
-    await workspaceStore.loadExplorer()
-    ElMessage.success(`导入完成：新增 ${result.value.importedNotes} 篇笔记`)
+    let combinedResult: ImportResponse | null = null
+
+    if (markdownFiles.value.length) {
+      const markdownResult = await importMarkdownFiles({
+        files: markdownFiles.value,
+        mode: toMarkdownMode(mode.value),
+        rootFolderName: rootFolderName.value,
+        targetFolderId: targetFolderId.value
+      })
+      combinedResult = mergeImportResponses(combinedResult, markdownResult)
+      await workspaceStore.loadExplorer()
+    }
+
+    if (extractedDocumentFiles.value.length) {
+      const documentResult = await importDocumentsAsNotes({
+        files: extractedDocumentFiles.value,
+        rootFolderName: rootFolderName.value || '文档转笔记',
+        targetFolderId: targetFolderId.value,
+        keepAttachments: keepOriginalDocuments.value
+      })
+      combinedResult = mergeImportResponses(combinedResult, documentResult)
+      uploadedAttachments.value.push(...(documentResult.attachments ?? []))
+      await workspaceStore.loadExplorer()
+    }
+
+    result.value = combinedResult
+
+    if (directAttachmentFiles.value.length) {
+      uploadedAttachments.value.push(...await uploadAttachmentFiles(directAttachmentFiles.value))
+    }
+
+    const successParts = [
+      result.value?.importedNotes ? `新增 ${result.value.importedNotes} 篇笔记` : '',
+      uploadedAttachments.value.length ? `上传 ${uploadedAttachments.value.length} 个附件` : ''
+    ].filter(Boolean)
+
+    if (attachmentWarnings.value.length) {
+      ElMessage.warning(`导入完成，但 ${attachmentWarnings.value.length} 个附件上传失败`)
+    } else {
+      ElMessage.success(`导入完成：${successParts.join('，') || '没有新内容'}`)
+    }
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : '导入失败，请稍后重试')
   } finally {
@@ -194,6 +343,8 @@ async function submitImport() {
 function clearSelection() {
   selectedFiles.value = []
   result.value = null
+  uploadedAttachments.value = []
+  attachmentWarnings.value = []
   rootFolderName.value = fallbackRootName()
 }
 
@@ -215,6 +366,10 @@ function openFirstImportedNote() {
   void router.push(`/note/${firstNote.id}/edit`)
 }
 
+function openAttachmentCenter() {
+  void router.push('/attachments')
+}
+
 function relativePathOf(file: ImportableFile) {
   return file.webkitRelativePath || file.name
 }
@@ -222,6 +377,65 @@ function relativePathOf(file: ImportableFile) {
 function isMarkdownPath(path: string) {
   const normalized = path.toLowerCase()
   return normalized.endsWith('.md') || normalized.endsWith('.markdown')
+}
+
+function toMarkdownMode(value: ImportCenterMode): ImportMode {
+  return value === 'ATTACHMENTS' ? 'BATCH_MARKDOWN' : value
+}
+
+function mergeImportResponses(current: ImportResponse | null, next: ImportResponse): ImportResponse {
+  if (!current) {
+    return {
+      ...next,
+      tags: [...next.tags],
+      warnings: [...next.warnings],
+      notes: [...next.notes],
+      attachments: [...(next.attachments ?? [])]
+    }
+  }
+
+  return {
+    ...current,
+    rootFolderId: current.rootFolderId || next.rootFolderId,
+    rootFolderName: current.rootFolderName || next.rootFolderName,
+    totalFiles: current.totalFiles + next.totalFiles,
+    importedNotes: current.importedNotes + next.importedNotes,
+    createdFolders: current.createdFolders + next.createdFolders,
+    skippedFiles: current.skippedFiles + next.skippedFiles,
+    tags: [...new Set([...current.tags, ...next.tags])],
+    warnings: [...current.warnings, ...next.warnings],
+    notes: [...current.notes, ...next.notes],
+    attachments: [...(current.attachments ?? []), ...(next.attachments ?? [])]
+  }
+}
+
+async function uploadAttachmentFiles(files: ImportableFile[]) {
+  const uploaded: AttachmentItem[] = []
+
+  for (const file of files) {
+    try {
+      uploaded.push(await uploadAttachment(file))
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '上传失败'
+      attachmentWarnings.value.push(`${file.name}：${message}`)
+    }
+  }
+
+  return uploaded
+}
+
+function attachmentFileType(file: File) {
+  const extension = file.name.split('.').pop()?.toLowerCase() || ''
+
+  if (file.type.startsWith('image/') || ['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(extension)) {
+    return 'IMAGE'
+  }
+
+  if (file.type === 'application/pdf' || extension === 'pdf') {
+    return 'PDF'
+  }
+
+  return 'WORD'
 }
 
 function inferRootName(files: ImportableFile[]) {
@@ -236,6 +450,10 @@ function inferRootName(files: ImportableFile[]) {
 }
 
 function fallbackRootName() {
+  if (mode.value === 'ATTACHMENTS') {
+    return '附件批量导入'
+  }
+
   if (mode.value === 'OBSIDIAN_VAULT') {
     return 'Obsidian 导入'
   }
@@ -295,7 +513,7 @@ function formatBytes(bytes: number) {
     >
       <template #actions>
         <el-button type="primary" :loading="importing" :disabled="!canImport" @click="submitImport">
-          开始导入
+          {{ importButtonText }}
         </el-button>
         <el-button plain @click="clearSelection">清空选择</el-button>
       </template>
@@ -305,7 +523,7 @@ function formatBytes(bytes: number) {
       ref="directoryInputRef"
       class="import-center__input"
       type="file"
-      accept=".md,.markdown,text/markdown"
+      accept=".md,.markdown,text/markdown,image/png,image/jpeg,image/webp,image/gif,application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
       webkitdirectory
       directory
       multiple
@@ -318,6 +536,14 @@ function formatBytes(bytes: number) {
       accept=".md,.markdown,text/markdown"
       multiple
       @change="handleBatchChange"
+    />
+    <input
+      ref="attachmentInputRef"
+      class="import-center__input"
+      type="file"
+      accept="image/png,image/jpeg,image/webp,image/gif,application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      multiple
+      @change="handleAttachmentChange"
     />
 
     <section class="import-center__modes">
@@ -347,11 +573,15 @@ function formatBytes(bytes: number) {
           <h2>{{ activeModeCard.title }}</h2>
           <p>
             {{ activeModeCard.description }}
-            {{
-              mode === 'BATCH_MARKDOWN'
-                ? '也可以把多个 Markdown 文件拖到这里。'
-                : '目录导入建议使用下方按钮选择文件夹，浏览器会保留相对路径。'
-            }}
+            <template v-if="mode === 'ATTACHMENTS'">
+              也可以直接把图片、PDF、Word 拖到这里。
+            </template>
+            <template v-else-if="mode === 'BATCH_MARKDOWN'">
+              也可以把多个 Markdown 文件和相关附件一起拖到这里。
+            </template>
+            <template v-else>
+              目录导入可以同时识别 Markdown 和附件，浏览器会保留相对路径。
+            </template>
           </p>
         </div>
 
@@ -359,7 +589,8 @@ function formatBytes(bytes: number) {
           <el-button type="primary" size="large" @click="triggerPicker(mode)">
             {{ activeModeCard.buttonText }}
           </el-button>
-          <el-button plain size="large" @click="triggerPicker('BATCH_MARKDOWN')">只选文件</el-button>
+          <el-button plain size="large" @click="triggerPicker('BATCH_MARKDOWN')">只选 Markdown</el-button>
+          <el-button plain size="large" @click="triggerPicker('ATTACHMENTS')">只选附件</el-button>
         </div>
 
         <div class="import-dropzone__stats">
@@ -368,8 +599,8 @@ function formatBytes(bytes: number) {
             <strong>{{ markdownFiles.length }}</strong>
           </article>
           <article>
-            <span>目录层级</span>
-            <strong>{{ directoryCount }}</strong>
+            <span>附件</span>
+            <strong>{{ attachmentFiles.length }}</strong>
           </article>
           <article>
             <span>总大小</span>
@@ -386,80 +617,133 @@ function formatBytes(bytes: number) {
         <span class="section-kicker">Import Settings</span>
         <h3>导入设置</h3>
 
-        <label class="import-settings__field">
-          <span>导入后的根文件夹</span>
-          <el-input v-model="rootFolderName" maxlength="80" placeholder="例如：我的 Obsidian Vault" />
-        </label>
+        <template v-if="mode !== 'ATTACHMENTS' || markdownFiles.length || extractedDocumentFiles.length">
+          <label class="import-settings__field">
+            <span>导入后的根文件夹</span>
+            <el-input v-model="rootFolderName" maxlength="80" placeholder="例如：我的 Obsidian Vault" />
+          </label>
 
-        <label class="import-settings__field">
-          <span>导入到哪个位置</span>
-          <el-select v-model="targetFolderId" clearable placeholder="作为根目录导入">
-            <el-option label="作为根目录导入" :value="null" />
-            <el-option
-              v-for="folder in workspaceStore.folderOptions"
-              :key="folder.value"
-              :label="folder.label"
-              :value="folder.value"
-            />
-          </el-select>
-        </label>
+          <label class="import-settings__field">
+            <span>导入到哪个位置</span>
+            <el-select v-model="targetFolderId" clearable placeholder="作为根目录导入">
+              <el-option label="作为根目录导入" :value="null" />
+              <el-option
+                v-for="folder in workspaceStore.folderOptions"
+                :key="folder.value"
+                :label="folder.label"
+                :value="folder.value"
+              />
+            </el-select>
+          </label>
+
+          <div class="import-settings__hint">
+            <strong>笔记导入会自动处理</strong>
+            <span>一级导入文件夹、子目录、H1 标题、front matter 标签和正文里的 #标签。</span>
+          </div>
+        </template>
+
+        <div class="import-settings__field import-settings__switch">
+          <div>
+            <span>PDF / Word 处理方式</span>
+            <strong>{{ extractDocuments ? '抽取为笔记' : '仅作为附件' }}</strong>
+          </div>
+          <el-switch
+            v-model="extractDocuments"
+            :disabled="!documentFiles.length"
+            active-text="转笔记"
+            inactive-text="附件"
+          />
+        </div>
+
+        <div v-if="extractDocuments" class="import-settings__field import-settings__switch">
+          <div>
+            <span>保留原始文档</span>
+            <strong>{{ keepOriginalDocuments ? '保留到附件中心' : '只生成笔记' }}</strong>
+          </div>
+          <el-switch
+            v-model="keepOriginalDocuments"
+            active-text="保留"
+            inactive-text="不保留"
+          />
+        </div>
 
         <div class="import-settings__hint">
-          <strong>会自动处理</strong>
-          <span>一级导入文件夹、子目录、H1 标题、front matter 标签和正文里的 #标签。</span>
+          <strong>附件会进入附件中心</strong>
+          <span>
+            图片始终作为附件；PDF/Word 可选择仅保存附件，或抽取文字生成可搜索、可编辑的笔记。
+          </span>
         </div>
 
         <el-button type="primary" :loading="importing" :disabled="!canImport" @click="submitImport">
-          导入 {{ markdownFiles.length || '' }} 篇笔记
+          {{ importButtonText }}
         </el-button>
       </aside>
     </section>
 
-    <section v-if="markdownFiles.length" class="import-preview panel">
+    <section v-if="markdownFiles.length || attachmentFiles.length" class="import-preview panel">
       <div class="import-preview__head">
         <div>
           <span class="section-kicker">Preview</span>
           <h2>导入预览</h2>
         </div>
-        <small>只展示前 {{ previewFiles.length }} 个文件，完整目录会在后端按相对路径导入。</small>
+        <small>只展示部分文件，Markdown 会按相对路径导入，附件会上传到附件中心。</small>
       </div>
 
-      <div class="import-preview__groups">
+      <div v-if="markdownFiles.length" class="import-preview__groups">
         <article v-for="group in previewGroups" :key="group.name">
           <strong>{{ group.name }}</strong>
           <span>{{ group.count }} 篇</span>
         </article>
       </div>
 
-      <div class="import-preview__files">
+      <div v-if="markdownFiles.length" class="import-preview__files">
         <span v-for="file in previewFiles" :key="relativePathOf(file)">
           {{ relativePathOf(file) }}
         </span>
       </div>
+
+      <div v-if="attachmentFiles.length" class="import-preview__attachments">
+        <article v-for="file in previewAttachments" :key="relativePathOf(file)">
+          <span>{{ attachmentIcon(attachmentFileType(file)) }}</span>
+          <div>
+            <strong>{{ file.name }}</strong>
+            <small>
+              {{ attachmentTypeLabel(attachmentFileType(file)) }} / {{ formatFileSize(file.size) }}
+              <template v-if="extractDocuments && ['PDF', 'WORD'].includes(attachmentFileType(file))">
+                / 将抽取为笔记
+              </template>
+            </small>
+          </div>
+        </article>
+      </div>
     </section>
 
-    <section v-if="result" class="import-result panel">
+    <section v-if="hasImportResult" class="import-result panel">
       <div class="import-result__summary">
         <span class="section-kicker">Import Finished</span>
         <h2>导入完成</h2>
-        <p>
-          已导入 {{ result.importedNotes }} 篇笔记，创建 {{ result.createdFolders }} 个文件夹，
-          {{ result.skippedFiles }} 个文件被忽略。
-        </p>
+        <p>{{ resultSummaryText }}</p>
       </div>
 
       <div class="import-result__actions">
-        <el-button type="primary" @click="openImportedFolder">查看导入文件夹</el-button>
-        <el-button plain :disabled="!result.notes.length" @click="openFirstImportedNote">打开第一篇笔记</el-button>
+        <el-button v-if="result?.rootFolderId" type="primary" @click="openImportedFolder">查看导入文件夹</el-button>
+        <el-button v-if="result?.notes.length" plain @click="openFirstImportedNote">打开第一篇笔记</el-button>
+        <el-button v-if="uploadedAttachments.length" plain @click="openAttachmentCenter">查看附件中心</el-button>
       </div>
 
-      <div v-if="result.tags.length" class="import-result__tags">
+      <div v-if="result?.tags.length" class="import-result__tags">
         <span v-for="tag in result.tags.slice(0, 18)" :key="tag">#{{ tag }}</span>
       </div>
 
-      <div v-if="result.warnings.length" class="import-result__warnings">
+      <div v-if="uploadedAttachments.length" class="import-result__attachments">
+        <span v-for="attachment in uploadedAttachments.slice(0, 18)" :key="attachment.id">
+          {{ attachmentTypeLabel(attachment.fileType) }} / {{ attachment.originalName }}
+        </span>
+      </div>
+
+      <div v-if="resultWarnings.length" class="import-result__warnings">
         <strong>需要留意</strong>
-        <span v-for="warning in result.warnings" :key="warning">{{ warning }}</span>
+        <span v-for="warning in resultWarnings" :key="warning">{{ warning }}</span>
       </div>
     </section>
   </div>
@@ -477,7 +761,7 @@ function formatBytes(bytes: number) {
 
 .import-center__modes {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
 }
 
@@ -627,6 +911,26 @@ function formatBytes(bytes: number) {
   gap: 8px;
 }
 
+.import-settings__switch {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid rgba(54, 92, 75, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.import-settings__switch div {
+  display: grid;
+  gap: 4px;
+}
+
+.import-settings__switch strong {
+  color: var(--text-main);
+  font-size: 0.94rem;
+}
+
 .import-settings__hint {
   display: grid;
   gap: 6px;
@@ -677,6 +981,8 @@ function formatBytes(bytes: number) {
 }
 
 .import-preview__files,
+.import-preview__attachments,
+.import-result__attachments,
 .import-result__tags,
 .import-result__warnings {
   display: flex;
@@ -685,6 +991,7 @@ function formatBytes(bytes: number) {
 }
 
 .import-preview__files span,
+.import-result__attachments span,
 .import-result__tags span,
 .import-result__warnings span {
   display: inline-flex;
@@ -697,6 +1004,47 @@ function formatBytes(bytes: number) {
   font-size: 0.84rem;
 }
 
+.import-preview__attachments {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.import-preview__attachments article {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid rgba(54, 92, 75, 0.1);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top left, rgba(54, 92, 75, 0.1), transparent 40%),
+    rgba(255, 255, 255, 0.72);
+}
+
+.import-preview__attachments article > span {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: rgba(54, 92, 75, 0.1);
+  color: #365c4b;
+  font-weight: 800;
+}
+
+.import-preview__attachments strong,
+.import-preview__attachments small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.import-preview__attachments small {
+  color: var(--text-soft);
+}
+
 .import-result {
   grid-template-columns: minmax(0, 1fr) auto;
   background:
@@ -705,6 +1053,7 @@ function formatBytes(bytes: number) {
 }
 
 .import-result__tags,
+.import-result__attachments,
 .import-result__warnings {
   grid-column: 1 / -1;
 }
@@ -712,6 +1061,11 @@ function formatBytes(bytes: number) {
 .import-result__tags span {
   color: #365c4b;
   background: rgba(54, 92, 75, 0.08);
+}
+
+.import-result__attachments span {
+  color: #64442d;
+  background: rgba(197, 157, 88, 0.12);
 }
 
 .import-result__warnings {

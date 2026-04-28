@@ -14,5 +14,11 @@ public class InspirationResponse {
 
     private List<NoteResponse> relatedNotes;
 
+    private List<InspirationMatchResponse> recommendations;
+
+    private List<String> inspirationPrompts;
+
+    private String matchSummary;
+
     private String inspirationQuote;
 }

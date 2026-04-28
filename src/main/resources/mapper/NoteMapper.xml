@@ -100,6 +100,15 @@
         ORDER BY update_time DESC
     </select>
 
+    <select id="findAccessibleRecentNotes" resultType="com.ahy.knowledgepulse.entity.Note">
+        SELECT DISTINCT n.* FROM note n
+        LEFT JOIN note_collaborator nc ON n.id = nc.note_id
+        WHERE n.is_deleted = 0
+          AND (n.user_id = #{userId} OR nc.user_id = #{userId})
+          AND n.update_time >= #{startTime}
+        ORDER BY n.update_time DESC
+    </select>
+
     <select id="findNotesWithTag" resultType="com.ahy.knowledgepulse.entity.Note">
         SELECT DISTINCT n.* FROM note n
         JOIN note_tag t ON n.id = t.note_id
@@ -117,6 +126,26 @@
           AND (n.user_id = #{userId} OR nc.user_id = #{userId})
           AND t.tag_name LIKE CONCAT('%', #{tagName}, '%')
         ORDER BY n.update_time DESC
+    </select>
+
+    <select id="findAccessibleNotesByTags" resultType="com.ahy.knowledgepulse.entity.Note">
+        SELECT DISTINCT n.* FROM note n
+        LEFT JOIN note_collaborator nc ON n.id = nc.note_id
+        JOIN note_tag t ON n.id = t.note_id
+        WHERE n.is_deleted = 0
+          AND (n.user_id = #{userId} OR nc.user_id = #{userId})
+          AND t.tag_name IN
+          <foreach collection="tags" item="tag" open="(" separator="," close=")">
+              #{tag}
+          </foreach>
+        ORDER BY n.update_time DESC
+    </select>
+
+    <select id="findLatestAccessibleUpdateTime" resultType="java.time.LocalDateTime">
+        SELECT MAX(n.update_time) FROM note n
+        LEFT JOIN note_collaborator nc ON n.id = nc.note_id
+        WHERE n.is_deleted = 0
+          AND (n.user_id = #{userId} OR nc.user_id = #{userId})
     </select>
 
     <select id="findDeletedByUserId" resultType="com.ahy.knowledgepulse.entity.Note">

@@ -34,4 +34,16 @@ public class ImportController {
     ) {
         return Result.success(noteImportService.importMarkdownFiles(files, paths, mode, rootFolderName, targetFolderId));
     }
+
+    @PostMapping(value = "/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Extract PDF or Word as notes", description = "Extract text from PDF, .doc and .docx files, then create editable notes")
+    public Result<ImportResponse> importDocuments(
+            @RequestParam("files") List<MultipartFile> files,
+            @RequestParam(value = "paths", required = false) List<String> paths,
+            @RequestParam(value = "rootFolderName", required = false) String rootFolderName,
+            @RequestParam(value = "targetFolderId", required = false) Long targetFolderId,
+            @RequestParam(value = "keepAttachments", defaultValue = "true") Boolean keepAttachments
+    ) {
+        return Result.success(noteImportService.importDocumentFiles(files, paths, rootFolderName, targetFolderId, keepAttachments));
+    }
 }

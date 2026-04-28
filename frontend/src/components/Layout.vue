@@ -20,9 +20,10 @@ const navItems = [
   { path: '/folder', label: '文件与笔记', caption: '文件夹、收藏、回收站' },
   { path: '/templates', label: '模板中心', caption: '常用结构与快速起草' },
   { path: '/attachments', label: '附件中心', caption: '图片、PDF、Word 与未使用清理' },
-  { path: '/import', label: '导入中心', caption: 'Markdown、Obsidian 与批量导入' },
+  { path: '/import', label: '导入中心', caption: 'Markdown、Obsidian 与附件导入' },
   { path: '/graph', label: '知识图谱', caption: '关系连接与图谱洞察' },
   { path: '/search', label: '全文搜索', caption: '标题、正文、标签联查' },
+  { path: '/share', label: '查看分享', caption: '粘贴分享链接或分享码' },
   { path: '/profile', label: '个人中心', caption: '资料、头像与账号设置' }
 ]
 
@@ -31,6 +32,7 @@ const mobileNavItems = [
   { key: 'folder', path: '/folder', label: '笔记', mark: '记' },
   { key: 'new-note', path: '/note/new', label: '新建', mark: '+' },
   { key: 'search', path: '/search', label: '搜索', mark: '搜' },
+  { key: 'share', path: '/share', label: '分享', mark: '享' },
   { key: 'profile', path: '/profile', label: '我的', mark: '我' }
 ]
 
@@ -664,7 +666,7 @@ onBeforeUnmount(() => {
     bottom: calc(10px + env(safe-area-inset-bottom));
     z-index: 28;
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 6px;
     padding: 8px;
     border: 1px solid rgba(141, 69, 41, 0.14);
