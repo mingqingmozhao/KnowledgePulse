@@ -261,28 +261,28 @@ async function saveProfile() {
 <style scoped>
 .profile-view__layout {
   display: grid;
-  gap: 24px;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) 300px;
 }
 
 .profile-editor,
 .profile-summary {
-  padding: 24px;
+  padding: 18px;
 }
 
 .profile-editor {
-  padding: 24px;
+  padding: 18px;
 }
 
 .profile-editor__body {
   display: grid;
-  gap: 24px;
+  gap: 16px;
 }
 
 .profile-editor__header {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 14px;
 }
 
 .profile-editor__avatar {
@@ -293,7 +293,7 @@ async function saveProfile() {
 
 .profile-editor__identity {
   display: grid;
-  gap: 8px;
+  gap: 5px;
   min-width: 0;
 }
 
@@ -315,14 +315,14 @@ async function saveProfile() {
 
 .profile-editor__avatar-section {
   display: grid;
-  gap: 16px;
+  gap: 12px;
 }
 
 .profile-editor__section-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
 }
 
 .profile-editor__section-head small {
@@ -331,17 +331,17 @@ async function saveProfile() {
 
 .profile-editor__presets {
   display: grid;
-  gap: 14px;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
 }
 
 .profile-editor__preset {
   display: grid;
   justify-items: start;
-  gap: 10px;
-  padding: 16px;
+  gap: 8px;
+  padding: 12px;
   border: 1px solid rgba(184, 92, 56, 0.14);
-  border-radius: 20px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.64);
   cursor: pointer;
   text-align: left;
@@ -374,19 +374,19 @@ async function saveProfile() {
 .profile-view__aside {
   display: grid;
   align-content: start;
-  gap: 24px;
+  gap: 16px;
 }
 
 .profile-summary__cards {
   display: grid;
-  gap: 14px;
-  margin-top: 18px;
+  gap: 10px;
+  margin-top: 12px;
 }
 
 .profile-summary__cards article {
   display: grid;
-  gap: 8px;
-  padding: 16px 18px;
+  gap: 6px;
+  padding: 12px 14px;
   border: 1px solid rgba(184, 92, 56, 0.14);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.54);
@@ -398,9 +398,9 @@ async function saveProfile() {
 }
 
 .profile-summary__tips {
-  margin: 18px 0 0;
+  margin: 12px 0 0;
   padding-left: 18px;
-  line-height: 1.9;
+  line-height: 1.6;
 }
 
 @media (max-width: 1180px) {

@@ -302,12 +302,12 @@ function handleNodeCollapse(data: FolderNode) {
 
 <style scoped>
 .folder-panel {
-  padding: 22px;
+  padding: 16px;
 }
 
 .folder-panel__actions {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -324,7 +324,7 @@ function handleNodeCollapse(data: FolderNode) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
 }
 
 .folder-panel__tree-tip {
@@ -339,9 +339,9 @@ function handleNodeCollapse(data: FolderNode) {
 }
 
 .folder-panel__tree {
-  padding: 8px 0;
+  padding: 4px 0;
   background: transparent;
-  max-height: min(38vh, 360px);
+  max-height: min(32vh, 300px);
   overflow: auto;
 }
 
@@ -349,9 +349,9 @@ function handleNodeCollapse(data: FolderNode) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 10px;
   width: 100%;
-  font-size: 0.96rem;
+  font-size: 0.9rem;
 }
 
 .folder-panel__node small {
@@ -359,7 +359,7 @@ function handleNodeCollapse(data: FolderNode) {
 }
 
 .folder-panel__tree :deep(.el-tree-node__content) {
-  min-height: 38px;
+  min-height: 32px;
   border-radius: 12px;
   transition: background-color 0.2s ease;
 }
@@ -375,7 +375,7 @@ function handleNodeCollapse(data: FolderNode) {
 
 @media (max-width: 640px) {
   .folder-panel {
-    padding: 16px;
+    padding: 14px;
   }
 
   .folder-panel__actions {
@@ -393,7 +393,7 @@ function handleNodeCollapse(data: FolderNode) {
   }
 
   .folder-panel__tree {
-    max-height: min(32vh, 260px);
+    max-height: min(28vh, 220px);
   }
 }
 

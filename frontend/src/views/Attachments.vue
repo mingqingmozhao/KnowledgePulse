@@ -268,7 +268,7 @@ async function deleteUnusedAttachment(attachment: AttachmentItem) {
 <style scoped>
 .attachment-center {
   display: grid;
-  gap: 24px;
+  gap: 16px;
 }
 
 .attachment-center__file-input {
@@ -278,15 +278,15 @@ async function deleteUnusedAttachment(attachment: AttachmentItem) {
 .attachment-center__summary {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  gap: 10px;
 }
 
 .attachment-center__summary article {
   display: grid;
-  gap: 8px;
-  padding: 20px;
+  gap: 6px;
+  padding: 14px;
   border: 1px solid rgba(93, 113, 92, 0.12);
-  border-radius: 24px;
+  border-radius: 18px;
   background:
     radial-gradient(circle at top right, rgba(54, 92, 75, 0.1), transparent 34%),
     rgba(255, 255, 255, 0.68);
@@ -298,7 +298,7 @@ async function deleteUnusedAttachment(attachment: AttachmentItem) {
 
 .attachment-center__summary strong {
   color: var(--text-main);
-  font-size: 1.65rem;
+  font-size: 1.36rem;
 }
 
 .attachment-center__summary-card--alert strong {
@@ -309,32 +309,32 @@ async function deleteUnusedAttachment(attachment: AttachmentItem) {
   display: grid;
   grid-template-columns: auto minmax(220px, 1fr) auto;
   align-items: center;
-  gap: 14px;
-  padding: 16px;
+  gap: 10px;
+  padding: 12px;
 }
 
 .attachment-center__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 12px;
 }
 
 .attachment-card {
   display: grid;
-  gap: 14px;
-  padding: 16px;
+  gap: 10px;
+  padding: 12px;
   border: 1px solid rgba(93, 113, 92, 0.12);
-  border-radius: 26px;
+  border-radius: 18px;
   background: rgba(255, 255, 255, 0.72);
-  box-shadow: 0 18px 40px rgba(54, 92, 75, 0.06);
+  box-shadow: 0 12px 28px rgba(54, 92, 75, 0.06);
 }
 
 .attachment-card__preview {
   display: grid;
   place-items: center;
-  height: 154px;
+  height: 118px;
   overflow: hidden;
-  border-radius: 22px;
+  border-radius: 16px;
   background:
     radial-gradient(circle at top left, rgba(197, 157, 88, 0.2), transparent 42%),
     linear-gradient(135deg, rgba(54, 92, 75, 0.12), rgba(255, 249, 239, 0.74));
@@ -348,7 +348,7 @@ async function deleteUnusedAttachment(attachment: AttachmentItem) {
 
 .attachment-card__preview span {
   color: #365c4b;
-  font-size: 2.4rem;
+  font-size: 2rem;
   font-weight: 800;
 }
 
@@ -403,7 +403,7 @@ async function deleteUnusedAttachment(attachment: AttachmentItem) {
 }
 
 .attachment-card--skeleton {
-  min-height: 290px;
+  min-height: 230px;
   background:
     linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.86), transparent),
     rgba(255, 255, 255, 0.54);
@@ -415,7 +415,7 @@ async function deleteUnusedAttachment(attachment: AttachmentItem) {
   display: grid;
   gap: 10px;
   justify-items: center;
-  padding: 54px 20px;
+  padding: 36px 16px;
   color: var(--text-soft);
   text-align: center;
 }
@@ -461,21 +461,21 @@ async function deleteUnusedAttachment(attachment: AttachmentItem) {
   .attachment-center__summary article,
   .attachment-center__filters,
   .attachment-card {
-    padding: 16px;
+    padding: 12px;
     border-radius: 18px;
   }
 
   .attachment-center__summary article {
-    flex: 0 0 150px;
+    flex: 0 0 132px;
   }
 
   .attachment-center__summary strong {
-    font-size: 1.32rem;
+    font-size: 1.2rem;
   }
 
   .attachment-center__grid {
     grid-template-columns: 1fr;
-    gap: 14px;
+    gap: 10px;
   }
 
   .attachment-card__preview {

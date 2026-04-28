@@ -80,7 +80,7 @@ function togglePanel() {
 <style scoped>
 .collapsible-panel {
   display: grid;
-  gap: 14px;
+  gap: 10px;
   align-self: start;
 }
 
@@ -88,15 +88,15 @@ function togglePanel() {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
+  gap: 8px;
 }
 
 .collapsible-panel__meta {
   display: block;
-  margin-top: 6px;
+  margin-top: 4px;
   color: var(--text-soft);
   font-size: 0.82rem;
-  line-height: 1.5;
+  line-height: 1.35;
 }
 
 .collapsible-panel__header-actions {
@@ -106,13 +106,13 @@ function togglePanel() {
 }
 
 .collapsible-panel__toggle {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   border: 1px solid rgba(184, 92, 56, 0.2);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.72);
   color: #8d4529;
-  font-size: 1.2rem;
+  font-size: 1.08rem;
   line-height: 1;
   cursor: pointer;
   transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
@@ -126,7 +126,7 @@ function togglePanel() {
 
 .collapsible-panel__body {
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .collapsible-panel-collapse-enter-active,
@@ -169,11 +169,11 @@ function togglePanel() {
 
 @media (max-width: 420px) {
   .collapsible-panel {
-    gap: 12px;
+    gap: 10px;
   }
 
   .collapsible-panel__body {
-    gap: 12px;
+    gap: 10px;
   }
 }
 </style>

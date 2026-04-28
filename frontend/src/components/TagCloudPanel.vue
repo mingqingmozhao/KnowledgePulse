@@ -62,21 +62,21 @@ function tagStyle(count: number) {
 
 <style scoped>
 .tag-panel {
-  padding: 22px;
+  padding: 16px;
 }
 
 .tag-panel__cloud {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
+  gap: 9px;
   transform-origin: left top;
 }
 
 .tag-panel__tag {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
+  gap: 6px;
+  padding: 7px 10px;
   border: 1px solid rgba(184, 92, 56, 0.15);
   border-radius: 999px;
   background: rgba(255, 252, 246, 0.9);
@@ -98,6 +98,6 @@ function tagStyle(count: number) {
 
 .tag-panel__empty {
   color: var(--text-soft);
-  line-height: 1.7;
+  line-height: 1.55;
 }
 </style>

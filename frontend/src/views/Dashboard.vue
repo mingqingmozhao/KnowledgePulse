@@ -788,7 +788,7 @@ function getPanelToggleTitle(panel: PanelKey) {
 .recent-list__copy,
 .inspiration-card {
   display: grid;
-  gap: 16px;
+  gap: 12px;
 }
 
 .dashboard-mobile-jump {
@@ -799,7 +799,7 @@ function getPanelToggleTitle(panel: PanelKey) {
 .dashboard-daily,
 .dashboard-overview,
 .dashboard-card {
-  padding: 24px;
+  padding: 18px;
 }
 
 .dashboard-workspace {
@@ -822,8 +822,8 @@ function getPanelToggleTitle(panel: PanelKey) {
 }
 
 .dashboard-daily__focus-card {
-  padding: 24px;
-  border-radius: 24px;
+  padding: 18px;
+  border-radius: 18px;
   background:
     linear-gradient(150deg, rgba(255, 255, 255, 0.94), rgba(250, 239, 224, 0.9)),
     rgba(255, 255, 255, 0.8);
@@ -833,7 +833,7 @@ function getPanelToggleTitle(panel: PanelKey) {
 
 .dashboard-daily__focus-card strong {
   font-family: var(--header-font);
-  font-size: clamp(1.7rem, 3vw, 2.45rem);
+  font-size: clamp(1.45rem, 2.6vw, 2.1rem);
   line-height: 1.12;
 }
 
@@ -853,7 +853,7 @@ function getPanelToggleTitle(panel: PanelKey) {
 .dashboard-daily__eyebrow {
   display: inline-flex;
   width: fit-content;
-  padding: 8px 14px;
+  padding: 6px 11px;
   border-radius: 999px;
   background: rgba(184, 92, 56, 0.12);
   color: #8d4529;
@@ -870,8 +870,8 @@ function getPanelToggleTitle(panel: PanelKey) {
 .dashboard-daily__highlight,
 .inspiration-card__match,
 .recent-list__item {
-  padding: 18px 20px;
-  border-radius: 20px;
+  padding: 14px 16px;
+  border-radius: 16px;
   border: 1px solid rgba(184, 92, 56, 0.12);
   background: rgba(255, 255, 255, 0.68);
 }
@@ -884,26 +884,26 @@ function getPanelToggleTitle(panel: PanelKey) {
 .dashboard-daily__metric strong,
 .dashboard-workspace__stat strong {
   display: block;
-  margin-top: 8px;
-  font-size: 1.6rem;
+  margin-top: 5px;
+  font-size: 1.35rem;
 }
 
 .dashboard-daily__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
 }
 
 .dashboard-daily__chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 6px;
 }
 
 .dashboard-daily__chip {
   display: inline-flex;
   align-items: center;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.78);
   border: 1px solid rgba(184, 92, 56, 0.14);
@@ -917,9 +917,9 @@ function getPanelToggleTitle(panel: PanelKey) {
 
 .dashboard-daily__calendar {
   display: grid;
-  gap: 16px;
-  padding: 22px;
-  border-radius: 24px;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 18px;
   background:
     radial-gradient(circle at top right, rgba(197, 157, 88, 0.12), transparent 34%),
     rgba(255, 255, 255, 0.82);
@@ -939,7 +939,7 @@ function getPanelToggleTitle(panel: PanelKey) {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: 10px;
 }
 
 .dashboard-daily__calendar-head strong {
@@ -951,7 +951,7 @@ function getPanelToggleTitle(panel: PanelKey) {
 .dashboard-calendar {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 10px;
+  gap: 6px;
 }
 
 .dashboard-calendar__weekday {
@@ -962,10 +962,10 @@ function getPanelToggleTitle(panel: PanelKey) {
 
 .dashboard-calendar__cell {
   position: relative;
-  min-height: 64px;
-  padding: 10px 8px;
+  min-height: 50px;
+  padding: 8px 6px;
   border: 1px solid rgba(184, 92, 56, 0.1);
-  border-radius: 18px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.8);
   color: var(--text);
   cursor: pointer;
@@ -1039,7 +1039,7 @@ function getPanelToggleTitle(panel: PanelKey) {
 }
 
 .dashboard-calendar__nav-btn {
-  padding: 9px 14px;
+  padding: 7px 11px;
   border-radius: 999px;
   font-size: 0.92rem;
 }
@@ -1054,7 +1054,7 @@ function getPanelToggleTitle(panel: PanelKey) {
 .dashboard-daily__legend {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   color: #7a5d47;
   font-size: 0.9rem;
 }
@@ -1064,8 +1064,8 @@ function getPanelToggleTitle(panel: PanelKey) {
 }
 
 .dashboard-workspace__copy p {
-  margin: 10px 0 0;
-  line-height: 1.75;
+  margin: 6px 0 0;
+  line-height: 1.55;
 }
 
 .dashboard-workspace__stats {
@@ -1084,43 +1084,43 @@ function getPanelToggleTitle(panel: PanelKey) {
 }
 
 .dashboard-panel__toggle {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   border-radius: 999px;
-  font-size: 1.2rem;
+  font-size: 1.08rem;
   line-height: 1;
 }
 
 .inspiration-card blockquote {
   margin: 0;
-  padding: 18px 20px;
+  padding: 14px 16px;
   border-left: 4px solid var(--gold);
-  border-radius: 18px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.54);
   color: var(--text);
   font-family: var(--header-font);
-  font-size: 1.18rem;
-  line-height: 1.8;
+  font-size: 1.05rem;
+  line-height: 1.55;
 }
 
 .inspiration-card__tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 6px;
 }
 
 .inspiration-card__summary,
 .inspiration-card__match p {
   margin: 0;
-  line-height: 1.75;
+  line-height: 1.55;
 }
 
 .inspiration-card__prompts {
   display: grid;
-  gap: 10px;
-  padding: 16px 18px;
+  gap: 8px;
+  padding: 12px 14px;
   border: 1px solid rgba(197, 157, 88, 0.22);
-  border-radius: 20px;
+  border-radius: 16px;
   background:
     radial-gradient(circle at top left, rgba(197, 157, 88, 0.14), transparent 36%),
     rgba(255, 250, 240, 0.74);
@@ -1128,11 +1128,11 @@ function getPanelToggleTitle(panel: PanelKey) {
 
 .inspiration-card__prompts ol {
   display: grid;
-  gap: 10px;
+  gap: 6px;
   margin: 0;
   padding-left: 1.2rem;
   color: var(--text);
-  line-height: 1.75;
+  line-height: 1.55;
 }
 
 .inspiration-card__prompts li::marker {
@@ -1142,12 +1142,12 @@ function getPanelToggleTitle(panel: PanelKey) {
 
 .inspiration-card__matches {
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 
 .inspiration-card__match {
   display: grid;
-  gap: 12px;
+  gap: 8px;
   background:
     radial-gradient(circle at top right, rgba(54, 92, 75, 0.08), transparent 34%),
     rgba(255, 255, 255, 0.72);

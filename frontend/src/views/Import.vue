@@ -41,6 +41,7 @@ const uploadedAttachments = ref<AttachmentItem[]>([])
 const attachmentWarnings = ref<string[]>([])
 const extractDocuments = ref(false)
 const keepOriginalDocuments = ref(true)
+const showAdvancedSettings = ref(false)
 
 const modeCards: ModeCard[] = [
   {
@@ -614,10 +615,45 @@ function formatBytes(bytes: number) {
       </article>
 
       <aside class="import-settings panel">
-        <span class="section-kicker">Import Settings</span>
-        <h3>导入设置</h3>
+        <div class="import-settings__head">
+          <div>
+            <span class="section-kicker">Settings</span>
+            <h3>导入设置</h3>
+          </div>
+          <el-button text size="small" @click="showAdvancedSettings = !showAdvancedSettings">
+            {{ showAdvancedSettings ? '收起' : '更多设置' }}
+          </el-button>
+        </div>
 
-        <template v-if="mode !== 'ATTACHMENTS' || markdownFiles.length || extractedDocumentFiles.length">
+        <div
+          v-if="documentFiles.length || mode === 'ATTACHMENTS'"
+          class="import-settings__field import-settings__switch"
+        >
+          <div>
+            <span>PDF / Word</span>
+            <strong>{{ extractDocuments ? '转成笔记' : '仅附件' }}</strong>
+          </div>
+          <el-switch
+            v-model="extractDocuments"
+            :disabled="!documentFiles.length"
+            active-text="转笔记"
+            inactive-text="附件"
+          />
+        </div>
+
+        <div v-if="extractDocuments" class="import-settings__field import-settings__switch">
+          <div>
+            <span>原始文档</span>
+            <strong>{{ keepOriginalDocuments ? '保留附件' : '不保留' }}</strong>
+          </div>
+          <el-switch
+            v-model="keepOriginalDocuments"
+            active-text="保留"
+            inactive-text="不保留"
+          />
+        </div>
+
+        <template v-if="showAdvancedSettings && (mode !== 'ATTACHMENTS' || markdownFiles.length || extractedDocumentFiles.length)">
           <label class="import-settings__field">
             <span>导入后的根文件夹</span>
             <el-input v-model="rootFolderName" maxlength="80" placeholder="例如：我的 Obsidian Vault" />
@@ -642,32 +678,7 @@ function formatBytes(bytes: number) {
           </div>
         </template>
 
-        <div class="import-settings__field import-settings__switch">
-          <div>
-            <span>PDF / Word 处理方式</span>
-            <strong>{{ extractDocuments ? '抽取为笔记' : '仅作为附件' }}</strong>
-          </div>
-          <el-switch
-            v-model="extractDocuments"
-            :disabled="!documentFiles.length"
-            active-text="转笔记"
-            inactive-text="附件"
-          />
-        </div>
-
-        <div v-if="extractDocuments" class="import-settings__field import-settings__switch">
-          <div>
-            <span>保留原始文档</span>
-            <strong>{{ keepOriginalDocuments ? '保留到附件中心' : '只生成笔记' }}</strong>
-          </div>
-          <el-switch
-            v-model="keepOriginalDocuments"
-            active-text="保留"
-            inactive-text="不保留"
-          />
-        </div>
-
-        <div class="import-settings__hint">
+        <div v-if="showAdvancedSettings" class="import-settings__hint">
           <strong>附件会进入附件中心</strong>
           <span>
             图片始终作为附件；PDF/Word 可选择仅保存附件，或抽取文字生成可搜索、可编辑的笔记。
@@ -752,7 +763,7 @@ function formatBytes(bytes: number) {
 <style scoped>
 .import-center {
   display: grid;
-  gap: 24px;
+  gap: 16px;
 }
 
 .import-center__input {
@@ -760,17 +771,27 @@ function formatBytes(bytes: number) {
 }
 
 .import-center__modes {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px;
+  scrollbar-width: none;
+}
+
+.import-center__modes::-webkit-scrollbar {
+  display: none;
 }
 
 .import-mode-card {
-  display: grid;
+  display: flex;
+  flex: 1 0 170px;
+  align-items: center;
+  justify-content: space-between;
   gap: 10px;
-  padding: 20px;
+  min-height: 52px;
+  padding: 10px 12px;
   border: 1px solid rgba(184, 92, 56, 0.12);
-  border-radius: 26px;
+  border-radius: 16px;
   background:
     radial-gradient(circle at top right, rgba(197, 157, 88, 0.12), transparent 34%),
     rgba(255, 255, 255, 0.62);
@@ -786,16 +807,16 @@ function formatBytes(bytes: number) {
 
 .import-mode-card:hover,
 .import-mode-card--active {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   border-color: rgba(184, 92, 56, 0.28);
   background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 18px 40px rgba(141, 69, 41, 0.08);
+  box-shadow: 0 10px 24px rgba(141, 69, 41, 0.07);
 }
 
 .import-mode-card span,
 .import-mode-card em {
   color: var(--accent-strong);
-  font-size: 0.82rem;
+  font-size: 0.72rem;
   font-style: normal;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -803,32 +824,35 @@ function formatBytes(bytes: number) {
 
 .import-mode-card strong {
   font-family: var(--header-font);
-  font-size: 1.28rem;
+  font-size: 0.98rem;
+  line-height: 1.2;
 }
 
 .import-mode-card p {
-  margin: 0;
-  color: var(--text-soft);
-  line-height: 1.7;
+  display: none;
+}
+
+.import-mode-card em {
+  display: none;
 }
 
 .import-center__workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
-  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 14px;
 }
 
 .import-dropzone,
 .import-settings,
 .import-preview,
 .import-result {
-  padding: 24px;
+  padding: 16px;
 }
 
 .import-dropzone {
   display: grid;
-  gap: 22px;
-  min-height: 360px;
+  gap: 14px;
+  min-height: 220px;
   border-style: dashed;
   background:
     radial-gradient(circle at top left, rgba(54, 92, 75, 0.12), transparent 34%),
@@ -838,7 +862,7 @@ function formatBytes(bytes: number) {
 .import-dropzone__copy {
   display: grid;
   align-content: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .import-dropzone__copy h2,
@@ -846,7 +870,7 @@ function formatBytes(bytes: number) {
 .import-result h2 {
   margin: 0;
   font-family: var(--header-font);
-  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  font-size: clamp(1.35rem, 2.2vw, 1.9rem);
 }
 
 .import-dropzone__copy p,
@@ -854,26 +878,29 @@ function formatBytes(bytes: number) {
   max-width: 680px;
   margin: 0;
   color: var(--text-soft);
-  line-height: 1.8;
+  font-size: 0.92rem;
+  line-height: 1.6;
 }
 
 .import-dropzone__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
 }
 
 .import-dropzone__stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 8px;
 }
 
 .import-dropzone__stats article {
-  display: grid;
-  gap: 6px;
-  padding: 16px;
-  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.7);
   border: 1px solid rgba(54, 92, 75, 0.1);
 }
@@ -887,7 +914,7 @@ function formatBytes(bytes: number) {
 
 .import-dropzone__stats strong {
   color: var(--text-main);
-  font-size: 1.4rem;
+  font-size: 1.05rem;
 }
 
 .import-dropzone__stat--muted strong {
@@ -897,13 +924,20 @@ function formatBytes(bytes: number) {
 .import-settings {
   display: grid;
   align-content: start;
-  gap: 18px;
+  gap: 12px;
+}
+
+.import-settings__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .import-settings h3 {
-  margin: 0;
+  margin: 2px 0 0;
   font-family: var(--header-font);
-  font-size: 1.4rem;
+  font-size: 1.08rem;
 }
 
 .import-settings__field {
@@ -914,10 +948,10 @@ function formatBytes(bytes: number) {
 .import-settings__switch {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 14px;
-  padding: 14px;
+  gap: 10px;
+  padding: 10px 12px;
   border: 1px solid rgba(54, 92, 75, 0.1);
-  border-radius: 18px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.62);
 }
 
@@ -933,12 +967,13 @@ function formatBytes(bytes: number) {
 
 .import-settings__hint {
   display: grid;
-  gap: 6px;
-  padding: 16px;
-  border-radius: 18px;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 14px;
   background: rgba(184, 92, 56, 0.08);
   color: var(--text-soft);
-  line-height: 1.65;
+  font-size: 0.88rem;
+  line-height: 1.55;
 }
 
 .import-settings__hint strong {
@@ -948,7 +983,7 @@ function formatBytes(bytes: number) {
 .import-preview,
 .import-result {
   display: grid;
-  gap: 18px;
+  gap: 12px;
 }
 
 .import-preview__head,
@@ -960,14 +995,14 @@ function formatBytes(bytes: number) {
 .import-result__actions {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .import-preview__groups {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
 }
 
 .import-preview__groups article {
@@ -975,8 +1010,8 @@ function formatBytes(bytes: number) {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 14px 16px;
-  border-radius: 18px;
+  padding: 10px 12px;
+  border-radius: 14px;
   background: rgba(54, 92, 75, 0.08);
 }
 
@@ -987,7 +1022,7 @@ function formatBytes(bytes: number) {
 .import-result__warnings {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
 .import-preview__files span,
@@ -996,8 +1031,8 @@ function formatBytes(bytes: number) {
 .import-result__warnings span {
   display: inline-flex;
   align-items: center;
-  min-height: 34px;
-  padding: 0 12px;
+  min-height: 28px;
+  padding: 0 10px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.76);
   border: 1px solid rgba(184, 92, 56, 0.12);
@@ -1006,17 +1041,18 @@ function formatBytes(bytes: number) {
 
 .import-preview__attachments {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
 }
 
 .import-preview__attachments article {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 10px;
   align-items: center;
-  padding: 14px;
+  padding: 10px;
   border: 1px solid rgba(54, 92, 75, 0.1);
-  border-radius: 18px;
+  border-radius: 14px;
   background:
     radial-gradient(circle at top left, rgba(54, 92, 75, 0.1), transparent 40%),
     rgba(255, 255, 255, 0.72);
@@ -1025,9 +1061,9 @@ function formatBytes(bytes: number) {
 .import-preview__attachments article > span {
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 16px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   background: rgba(54, 92, 75, 0.1);
   color: #365c4b;
   font-weight: 800;
@@ -1070,9 +1106,9 @@ function formatBytes(bytes: number) {
 
 .import-result__warnings {
   display: grid;
-  gap: 10px;
-  padding: 16px;
-  border-radius: 18px;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 14px;
   background: rgba(184, 92, 56, 0.08);
 }
 
@@ -1081,7 +1117,6 @@ function formatBytes(bytes: number) {
 }
 
 @media (max-width: 1100px) {
-  .import-center__modes,
   .import-center__workspace {
     grid-template-columns: 1fr;
   }
@@ -1100,18 +1135,11 @@ function formatBytes(bytes: number) {
   }
 
   .import-center__modes {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .import-center__modes::-webkit-scrollbar {
-    display: none;
+    gap: 8px;
   }
 
   .import-mode-card {
-    flex: 0 0 180px;
+    flex: 0 0 154px;
   }
 
   .import-mode-card p,
@@ -1160,8 +1188,8 @@ function formatBytes(bytes: number) {
   }
 
   .import-dropzone__stats article {
-    padding: 14px;
-    border-radius: 16px;
+    padding: 10px 12px;
+    border-radius: 14px;
   }
 
   .import-preview__groups {

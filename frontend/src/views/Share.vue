@@ -242,48 +242,48 @@ watch(
 <style scoped>
 .share-page {
   min-height: 100vh;
-  padding: 24px;
+  padding: 16px;
 }
 
 .share-page__container {
   display: grid;
   width: min(980px, 100%);
-  gap: 24px;
+  gap: 16px;
   margin: 0 auto;
 }
 
 .share-page__hero,
 .share-page__opener,
 .share-page__content {
-  padding: 28px 30px;
+  padding: 20px;
 }
 
 .share-page__hero {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 22px;
+  gap: 16px;
   background:
     radial-gradient(circle at top right, rgba(197, 157, 88, 0.22), transparent 30%),
     linear-gradient(160deg, rgba(255, 252, 247, 0.96), rgba(241, 232, 219, 0.88));
 }
 
 .share-page__hero h1 {
-  margin: 10px 0 0;
+  margin: 6px 0 0;
   font-family: var(--header-font);
-  font-size: clamp(2rem, 3vw, 3rem);
+  font-size: clamp(1.7rem, 2.6vw, 2.55rem);
 }
 
 .share-page__hero p,
 .share-page__opener-copy p {
-  margin: 12px 0 0;
+  margin: 8px 0 0;
   color: var(--text-soft);
-  line-height: 1.8;
+  line-height: 1.55;
 }
 
 .share-page__opener {
   display: grid;
-  gap: 18px;
+  gap: 12px;
   background:
     radial-gradient(circle at top left, rgba(54, 92, 75, 0.12), transparent 34%),
     rgba(255, 255, 255, 0.72);
@@ -301,17 +301,17 @@ watch(
 .share-page__input-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
+  gap: 8px;
 }
 
 .share-page__current-link {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
-  padding: 12px 14px;
+  padding: 10px 12px;
   border: 1px solid rgba(54, 92, 75, 0.14);
-  border-radius: 16px;
+  border-radius: 14px;
   background: rgba(54, 92, 75, 0.07);
   color: #365c4b;
 }
@@ -333,33 +333,33 @@ watch(
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 10px;
+  margin-bottom: 12px;
   color: var(--text-soft);
 }
 
 .share-page__tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 6px;
 }
 
 .share-page__article {
-  min-height: 320px;
+  min-height: 240px;
 }
 
 .share-page__empty-guide,
 .share-page__locked {
   display: grid;
-  gap: 14px;
+  gap: 10px;
   text-align: center;
 }
 
 .share-page__empty-guide {
-  min-height: 220px;
+  min-height: 160px;
   place-content: center;
   border: 1px dashed rgba(141, 69, 41, 0.18);
-  border-radius: 22px;
+  border-radius: 18px;
   background:
     radial-gradient(circle at center, rgba(184, 92, 56, 0.08), transparent 44%),
     rgba(255, 255, 255, 0.48);
@@ -370,25 +370,25 @@ watch(
 .share-page__hint {
   margin: 0;
   color: var(--text-soft);
-  line-height: 1.8;
+  line-height: 1.55;
 }
 
 .share-page__password {
   display: flex;
   width: min(460px, 100%);
-  gap: 12px;
-  margin: 8px auto 0;
+  gap: 8px;
+  margin: 6px auto 0;
 }
 
 @media (max-width: 720px) {
   .share-page {
-    padding: 16px;
+    padding: 12px;
   }
 
   .share-page__hero,
   .share-page__opener,
   .share-page__content {
-    padding: 22px;
+    padding: 16px;
   }
 
   .share-page__hero,

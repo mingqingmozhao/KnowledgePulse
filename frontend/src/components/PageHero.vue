@@ -33,8 +33,8 @@ withDefaults(
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 20px;
-  padding: 28px 30px;
+  gap: 16px;
+  padding: 20px 22px;
   background:
     radial-gradient(circle at top right, rgba(197, 157, 88, 0.22), transparent 34%),
     linear-gradient(135deg, rgba(255, 248, 240, 0.96), rgba(246, 236, 221, 0.9));
@@ -45,23 +45,23 @@ withDefaults(
 }
 
 .page-hero__title {
-  margin: 10px 0 0;
+  margin: 6px 0 0;
   font-family: var(--header-font);
-  font-size: clamp(2rem, 3vw, 2.9rem);
+  font-size: clamp(1.72rem, 2.5vw, 2.35rem);
   line-height: 1.08;
 }
 
 .page-hero__description {
-  margin: 12px 0 0;
+  margin: 8px 0 0;
   color: var(--text-soft);
-  font-size: 1rem;
-  line-height: 1.7;
+  font-size: 0.94rem;
+  line-height: 1.55;
 }
 
 .page-hero__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
   justify-content: flex-end;
 }
 

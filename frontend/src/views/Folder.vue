@@ -334,18 +334,18 @@ function searchByTag(tag: string) {
 <style scoped>
 .folder-view__layout {
   display: grid;
-  gap: 24px;
-  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 16px;
+  grid-template-columns: 300px minmax(0, 1fr);
 }
 
 .folder-view__aside {
   display: grid;
   align-content: start;
-  gap: 24px;
+  gap: 16px;
 }
 
 .folder-view__content {
-  padding: 24px;
+  padding: 16px;
 }
 
 .folder-view__content-body {
@@ -353,21 +353,21 @@ function searchByTag(tag: string) {
 }
 
 .folder-view__tabs :deep(.el-tabs__header) {
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
 .note-grid {
   display: grid;
-  gap: 18px;
+  gap: 12px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .note-card {
   display: grid;
-  gap: 14px;
-  padding: 20px;
+  gap: 10px;
+  padding: 14px;
   border: 1px solid rgba(184, 92, 56, 0.14);
-  border-radius: 20px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.54);
 }
 
@@ -389,7 +389,7 @@ function searchByTag(tag: string) {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: 10px;
 }
 
 .note-card__top strong {
@@ -407,17 +407,17 @@ function searchByTag(tag: string) {
 .note-card p {
   margin: 0;
   color: var(--text-soft);
-  line-height: 1.8;
+  line-height: 1.55;
 }
 
 .note-card__tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 6px;
 }
 
 .note-card__tags button {
-  padding: 8px 12px;
+  padding: 6px 9px;
   border: 1px solid rgba(184, 92, 56, 0.16);
   border-radius: 999px;
   background: rgba(184, 92, 56, 0.06);
@@ -428,7 +428,7 @@ function searchByTag(tag: string) {
 .note-card__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
 .pill--warning {
@@ -458,7 +458,7 @@ function searchByTag(tag: string) {
 @media (max-width: 640px) {
   .folder-view__layout,
   .folder-view__aside {
-    gap: 16px;
+    gap: 12px;
   }
 
   .folder-view__content {
@@ -470,17 +470,17 @@ function searchByTag(tag: string) {
   }
 
   .folder-view__content {
-    padding: 16px;
+    padding: 12px;
   }
 
   .note-grid {
-    gap: 14px;
+    gap: 10px;
   }
 
   .note-card {
-    gap: 12px;
-    padding: 16px;
-    border-radius: 18px;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 16px;
   }
 
   .note-card__actions {

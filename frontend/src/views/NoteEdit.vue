@@ -3187,10 +3187,10 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  padding: 18px 20px;
+  gap: 12px;
+  padding: 12px 14px;
   border: 1px solid rgba(54, 92, 75, 0.18);
-  border-radius: 24px;
+  border-radius: 18px;
   background:
     radial-gradient(circle at top left, rgba(54, 92, 75, 0.14), transparent 34%),
     linear-gradient(180deg, rgba(246, 252, 249, 0.96), rgba(239, 248, 243, 0.9));
@@ -3199,7 +3199,7 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
 
 .note-editor__daily-banner-copy {
   display: grid;
-  gap: 8px;
+  gap: 5px;
 }
 
 .note-editor__daily-banner-copy strong {
@@ -3210,7 +3210,7 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
 .note-editor__daily-banner-copy p {
   margin: 0;
   color: var(--text-soft);
-  line-height: 1.75;
+  line-height: 1.5;
 }
 
 .note-editor__daily-banner-actions {
@@ -3218,14 +3218,14 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
   align-items: center;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 8px;
 }
 
 .note-editor__daily-banner-pill {
   display: inline-flex;
   align-items: center;
-  min-height: 34px;
-  padding: 0 14px;
+  min-height: 30px;
+  padding: 0 11px;
   border-radius: 999px;
   background: rgba(54, 92, 75, 0.14);
   color: #365c4b;
@@ -3241,10 +3241,10 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  padding: 18px 20px;
+  gap: 12px;
+  padding: 12px 14px;
   border: 1px solid rgba(197, 157, 88, 0.28);
-  border-radius: 24px;
+  border-radius: 18px;
   background:
     radial-gradient(circle at top right, rgba(197, 157, 88, 0.18), transparent 34%),
     linear-gradient(180deg, rgba(255, 251, 242, 0.96), rgba(255, 246, 228, 0.88));
@@ -3253,7 +3253,7 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
 
 .note-editor__restore-banner-copy {
   display: grid;
-  gap: 8px;
+  gap: 5px;
 }
 
 .note-editor__restore-banner-copy strong {
@@ -3264,7 +3264,7 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
 .note-editor__restore-banner-copy p {
   margin: 0;
   color: var(--text-soft);
-  line-height: 1.75;
+  line-height: 1.5;
 }
 
 .note-editor__restore-banner-actions {
@@ -3272,14 +3272,14 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
   align-items: center;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 8px;
 }
 
 .note-editor__restore-banner-pill {
   display: inline-flex;
   align-items: center;
-  min-height: 34px;
-  padding: 0 14px;
+  min-height: 30px;
+  padding: 0 11px;
   border-radius: 999px;
   background: rgba(197, 157, 88, 0.18);
   color: #8d6a22;
@@ -3290,8 +3290,8 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
 .note-editor__workspace {
   position: relative;
   display: grid;
-  gap: 18px;
-  padding: 24px;
+  gap: 14px;
+  padding: 16px;
   overflow: hidden;
   border: 1px solid rgba(184, 92, 56, 0.14);
   background:
@@ -3316,14 +3316,14 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
 
 .note-editor__workspace-head {
   display: grid;
-  gap: 18px;
-  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.95fr);
+  gap: 12px;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.95fr);
   align-items: start;
 }
 
 .note-editor__workspace-copy {
   display: grid;
-  gap: 8px;
+  gap: 5px;
 }
 
 .note-editor__workspace-copy strong {
@@ -3333,21 +3333,21 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
 
 .note-editor__workspace-copy small {
   color: var(--text-soft);
-  line-height: 1.7;
+  line-height: 1.5;
 }
 
 .note-editor__workspace-summary {
   display: grid;
-  gap: 12px;
+  gap: 8px;
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .note-editor__workspace-stat {
   display: grid;
-  gap: 6px;
-  padding: 14px 16px;
+  gap: 4px;
+  padding: 10px 12px;
   border: 1px solid rgba(184, 92, 56, 0.12);
-  border-radius: 18px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.72);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
 }
@@ -3358,16 +3358,16 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
 }
 
 .note-editor__workspace-stat strong {
-  font-size: 1.4rem;
+  font-size: 1.18rem;
   line-height: 1;
   color: var(--accent-strong);
 }
 
 .note-editor__workspace-strip {
   display: grid;
-  gap: 14px;
-  padding: 16px 18px;
-  border-radius: 22px;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.58);
   border: 1px solid rgba(184, 92, 56, 0.12);
 }
@@ -3375,14 +3375,14 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
 .note-editor__workspace-badges {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 6px;
 }
 
 .note-editor__workspace-badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  gap: 6px;
+  padding: 6px 9px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid rgba(184, 92, 56, 0.12);
@@ -3412,7 +3412,7 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
 .note-editor__workspace-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -3435,15 +3435,15 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
 
 .note-editor__workspace-tabs :deep(.el-tabs__nav) {
   border: 0;
-  gap: 10px;
+  gap: 6px;
 }
 
 .note-editor__workspace-tabs :deep(.el-tabs__item) {
   height: auto;
-  max-width: 320px;
-  padding: 12px 14px;
+  max-width: 260px;
+  padding: 8px 10px;
   border: 1px solid rgba(184, 92, 56, 0.1);
-  border-radius: 18px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.76);
   color: var(--text-main);
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
@@ -3463,13 +3463,13 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
 
 .note-editor__workspace-tabs :deep(.el-tabs__nav-next),
 .note-editor__workspace-tabs :deep(.el-tabs__nav-prev) {
-  line-height: 40px;
+  line-height: 34px;
 }
 
 .note-editor__tab-label {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   max-width: 100%;
 }
 
@@ -3477,11 +3477,11 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 180px;
+  max-width: 140px;
 }
 
 .note-editor__tab-meta {
-  padding: 3px 8px;
+  padding: 2px 6px;
   border-radius: 999px;
   background: rgba(184, 92, 56, 0.08);
   color: var(--text-soft);
@@ -3505,8 +3505,8 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
 
 .note-editor__layout {
   display: grid;
-  gap: 24px;
-  grid-template-columns: 300px minmax(0, 1fr) 360px;
+  gap: 16px;
+  grid-template-columns: 280px minmax(0, 1fr) 320px;
   align-items: start;
 }
 
@@ -3514,45 +3514,45 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
 .note-editor__rail {
   display: grid;
   align-content: start;
-  gap: 24px;
+  gap: 16px;
 }
 
 .note-editor__main {
-  padding: 24px;
+  padding: 16px;
 }
 
 .note-editor__meta {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 18px;
-  margin-bottom: 18px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .note-editor__meta-main {
   display: grid;
-  gap: 12px;
+  gap: 8px;
   width: 100%;
 }
 
 .note-editor__status {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 6px;
   justify-content: flex-end;
 }
 
 .note-editor__toolbar {
   display: grid;
-  gap: 14px;
-  grid-template-columns: 260px minmax(0, 1fr);
-  margin-bottom: 18px;
+  gap: 10px;
+  grid-template-columns: 230px minmax(0, 1fr);
+  margin-bottom: 12px;
 }
 
 .note-editor__export-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   grid-column: 1 / -1;
 }
 
@@ -3625,26 +3625,26 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
 
 .rail-card {
   display: grid;
-  gap: 14px;
-  padding: 22px;
+  gap: 10px;
+  padding: 16px;
 }
 
 .rail-card__body {
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .rail-card__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
 .rail-card__note {
   margin: 0;
   word-break: break-all;
   color: var(--text-soft);
-  line-height: 1.7;
+  line-height: 1.5;
 }
 
 .rail-card__note--warning {
@@ -3664,7 +3664,7 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
 .rail-card__comments,
 .rail-card__outline {
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 
 .rail-card__owner {
@@ -3686,10 +3686,10 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
 .rail-card__comment,
 .rail-card__link-group {
   display: grid;
-  gap: 8px;
-  padding: 16px;
+  gap: 6px;
+  padding: 12px;
   border: 1px solid rgba(184, 92, 56, 0.14);
-  border-radius: 18px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.54);
 }
 

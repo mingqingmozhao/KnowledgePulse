@@ -269,7 +269,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .layout-shell {
   display: grid;
-  grid-template-columns: 320px minmax(0, 1fr);
+  grid-template-columns: 296px minmax(0, 1fr);
   min-height: 100vh;
 }
 
@@ -285,13 +285,13 @@ onBeforeUnmount(() => {
   top: 0;
   display: grid;
   align-content: start;
-  gap: 20px;
+  gap: 14px;
   height: 100vh;
   max-height: 100dvh;
   min-height: 100vh;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 28px 24px;
+  padding: 20px 16px;
   background:
     radial-gradient(circle at top left, rgba(197, 157, 88, 0.16), transparent 42%),
     linear-gradient(180deg, rgba(255, 252, 247, 0.88), rgba(245, 236, 223, 0.76));
@@ -319,22 +319,22 @@ onBeforeUnmount(() => {
 }
 
 .layout-shell__brand h1 {
-  margin: 10px 0 0;
+  margin: 6px 0 0;
   font-family: var(--header-font);
-  font-size: 2.4rem;
+  font-size: 2rem;
 }
 
 .layout-shell__brand p {
-  margin: 12px 0 0;
+  margin: 8px 0 0;
   color: var(--text-soft);
-  line-height: 1.75;
+  line-height: 1.55;
 }
 
 .layout-shell__user,
 .layout-shell__workspace {
   display: grid;
-  gap: 10px;
-  padding: 18px;
+  gap: 8px;
+  padding: 14px;
 }
 
 .layout-shell__user span,
@@ -349,8 +349,8 @@ onBeforeUnmount(() => {
 }
 
 .layout-shell__workspace-copy p {
-  margin: 10px 0 0;
-  line-height: 1.7;
+  margin: 6px 0 0;
+  line-height: 1.5;
 }
 
 .layout-shell__workspace-metrics,
@@ -360,7 +360,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
 .layout-shell__workspace-pill,
@@ -368,8 +368,8 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 34px;
-  padding: 0 14px;
+  min-height: 30px;
+  padding: 0 11px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.78);
   color: var(--text-soft);
@@ -386,15 +386,15 @@ onBeforeUnmount(() => {
 
 .layout-shell__nav {
   display: grid;
-  gap: 10px;
+  gap: 7px;
 }
 
 .layout-shell__nav-item {
   display: grid;
   gap: 4px;
-  padding: 16px 18px;
+  padding: 12px 14px;
   border: 1px solid transparent;
-  border-radius: 18px;
+  border-radius: 15px;
   background: rgba(255, 255, 255, 0.44);
   color: inherit;
   text-align: left;
@@ -417,33 +417,33 @@ onBeforeUnmount(() => {
 .layout-shell__main {
   display: grid;
   align-content: start;
-  gap: 22px;
-  padding: 22px;
+  gap: 16px;
+  padding: 16px;
 }
 
 .layout-shell__header {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 18px;
-  padding: 18px 22px;
+  gap: 14px;
+  padding: 14px 16px;
 }
 
 .layout-shell__header-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .layout-shell__header-left h2 {
-  margin: 6px 0 0;
+  margin: 4px 0 0;
   font-family: var(--header-font);
-  font-size: 1.6rem;
+  font-size: 1.35rem;
 }
 
 .layout-shell__menu {
   display: none;
-  padding: 10px 16px;
+  padding: 8px 13px;
   border: 1px solid var(--line-strong);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.56);
@@ -454,11 +454,11 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 10px;
   width: 100%;
-  padding: 10px 14px;
+  padding: 8px 11px;
   border: 1px solid var(--line);
-  border-radius: 22px;
+  border-radius: 18px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(255, 250, 244, 0.64)),
     rgba(255, 255, 255, 0.6);
@@ -480,7 +480,7 @@ onBeforeUnmount(() => {
 
 .layout-shell__switcher-copy {
   display: grid;
-  gap: 4px;
+  gap: 2px;
 }
 
 .layout-shell__switcher-copy strong {
@@ -496,9 +496,9 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 74px;
-  min-height: 34px;
-  padding: 0 12px;
+  min-width: 64px;
+  min-height: 30px;
+  padding: 0 10px;
   border-radius: 999px;
   background: rgba(184, 92, 56, 0.08);
   border: 1px solid rgba(184, 92, 56, 0.16);
@@ -510,7 +510,7 @@ onBeforeUnmount(() => {
 .layout-shell__header-right {
   display: grid;
   justify-items: end;
-  gap: 10px;
+  gap: 8px;
 }
 
 .layout-shell__content {
@@ -531,10 +531,10 @@ onBeforeUnmount(() => {
     left: 0;
     top: 0;
     z-index: 30;
-    width: min(320px, calc(100vw - 28px));
+    width: min(300px, calc(100vw - 20px));
     height: 100dvh;
     min-height: 100dvh;
-    padding-bottom: calc(28px + env(safe-area-inset-bottom));
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
     transform: translateX(-100%);
     transition: transform 0.24s ease;
   }
@@ -550,12 +550,12 @@ onBeforeUnmount(() => {
 
 @media (max-width: 900px) {
   .layout-shell__main {
-    padding: 16px;
+    padding: 12px;
   }
 
   .layout-shell__aside {
-    gap: 16px;
-    padding: 22px 18px calc(24px + env(safe-area-inset-bottom));
+    gap: 12px;
+    padding: 16px 14px calc(18px + env(safe-area-inset-bottom));
   }
 
   .layout-shell__header {
@@ -583,23 +583,23 @@ onBeforeUnmount(() => {
   }
 
   .layout-shell__aside {
-    width: min(304px, calc(100vw - 14px));
-    padding: 20px 16px calc(22px + env(safe-area-inset-bottom));
+    width: min(292px, calc(100vw - 12px));
+    padding: 14px 12px calc(16px + env(safe-area-inset-bottom));
   }
 
   .layout-shell__brand h1 {
-    font-size: 2rem;
+    font-size: 1.76rem;
   }
 
   .layout-shell__brand p,
   .layout-shell__workspace p {
     font-size: 0.92rem;
-    line-height: 1.65;
+    line-height: 1.5;
   }
 
   .layout-shell__workspace,
   .layout-shell__user {
-    padding: 14px;
+    padding: 12px;
   }
 
   .layout-shell__workspace-actions :deep(.el-button) {

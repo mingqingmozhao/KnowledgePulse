@@ -347,15 +347,15 @@ function getTemplatePreview(template: NoteTemplate) {
 <style scoped>
 .templates-page {
   display: grid;
-  gap: 20px;
+  gap: 16px;
 }
 
 .templates-hero {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  padding: 28px;
+  gap: 18px;
+  padding: 20px;
   overflow: hidden;
   background:
     radial-gradient(circle at 10% 20%, rgba(255, 193, 79, 0.24), transparent 28%),
@@ -367,22 +367,22 @@ function getTemplatePreview(template: NoteTemplate) {
 }
 
 .templates-hero h1 {
-  margin: 8px 0 10px;
-  font-size: clamp(30px, 4vw, 48px);
+  margin: 6px 0 8px;
+  font-size: clamp(26px, 3.5vw, 40px);
   color: #243026;
 }
 
 .templates-hero p {
   margin: 0;
   color: #667060;
-  line-height: 1.8;
+  line-height: 1.55;
 }
 
 .templates-hero__actions {
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-width: min(460px, 100%);
+  gap: 8px;
+  min-width: min(420px, 100%);
 }
 
 .templates-hero__search {
@@ -392,13 +392,13 @@ function getTemplatePreview(template: NoteTemplate) {
 .templates-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  gap: 12px;
 }
 
 .templates-stat {
-  padding: 18px 20px;
+  padding: 14px 16px;
   border: 1px solid rgba(82, 102, 84, 0.12);
-  border-radius: 22px;
+  border-radius: 18px;
   background: rgba(255, 255, 255, 0.84);
   box-shadow: 0 18px 48px rgba(45, 59, 49, 0.08);
 }
@@ -411,8 +411,8 @@ function getTemplatePreview(template: NoteTemplate) {
 
 .templates-stat strong {
   display: block;
-  margin: 8px 0 4px;
-  font-size: 32px;
+  margin: 5px 0 2px;
+  font-size: 26px;
   color: #273329;
 }
 
@@ -428,11 +428,11 @@ function getTemplatePreview(template: NoteTemplate) {
 
 .templates-groups {
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .templates-group {
-  padding: 18px;
+  padding: 14px;
   border-color: rgba(93, 113, 92, 0.12);
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(247, 250, 243, 0.88)),
@@ -445,19 +445,19 @@ function getTemplatePreview(template: NoteTemplate) {
 
 .templates-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
 }
 
 .template-card {
   display: grid;
   grid-template-rows: auto auto auto;
   align-content: space-between;
-  gap: 10px;
-  min-height: 190px;
-  padding: 14px;
+  gap: 8px;
+  min-height: 158px;
+  padding: 12px;
   border: 1px solid rgba(93, 113, 92, 0.14);
-  border-radius: 20px;
+  border-radius: 16px;
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(250, 247, 239, 0.72)),
     #ffffff;
@@ -491,7 +491,7 @@ function getTemplatePreview(template: NoteTemplate) {
   overflow: hidden;
   margin: 0;
   color: #1f2e26;
-  font-size: 17px;
+  font-size: 15px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -516,7 +516,7 @@ function getTemplatePreview(template: NoteTemplate) {
   margin: 0;
   color: #687268;
   font-size: 13px;
-  line-height: 1.55;
+  line-height: 1.45;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -524,13 +524,13 @@ function getTemplatePreview(template: NoteTemplate) {
 
 .template-card__preview {
   overflow: hidden;
-  min-height: 48px;
-  padding: 9px 11px;
-  border-radius: 15px;
+  min-height: 38px;
+  padding: 8px 10px;
+  border-radius: 12px;
   color: #4f5d52;
   background: rgba(244, 247, 239, 0.78);
   font-size: 12px;
-  line-height: 1.55;
+  line-height: 1.45;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -572,7 +572,7 @@ function getTemplatePreview(template: NoteTemplate) {
 }
 
 .templates-empty {
-  padding: 60px 24px;
+  padding: 36px 16px;
 }
 
 .template-form {
@@ -604,7 +604,7 @@ function getTemplatePreview(template: NoteTemplate) {
 
 @media (max-width: 640px) {
   .templates-hero {
-    padding: 22px;
+    padding: 16px;
   }
 
   .templates-hero p {
@@ -625,12 +625,12 @@ function getTemplatePreview(template: NoteTemplate) {
 
   .templates-stat {
     flex: 0 0 138px;
-    padding: 12px;
+    padding: 10px;
   }
 
   .templates-stat strong {
     margin: 4px 0 2px;
-    font-size: 24px;
+    font-size: 22px;
   }
 
   .template-form__grid {
@@ -662,7 +662,7 @@ function getTemplatePreview(template: NoteTemplate) {
 
 @media (max-width: 420px) {
   .templates-page {
-    gap: 16px;
+    gap: 12px;
   }
 
   .templates-hero,

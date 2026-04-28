@@ -704,7 +704,7 @@ function continueWorkspace() {
 
         <EChartPanel
           :option="chartOption"
-          height="720px"
+          height="620px"
           :loading="loading"
           @chart-click="handleChartClick"
         />
@@ -716,20 +716,20 @@ function continueWorkspace() {
 <style scoped>
 .graph-view__layout {
   display: grid;
-  gap: 24px;
-  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 16px;
+  grid-template-columns: 320px minmax(0, 1fr);
 }
 
 .graph-view__aside {
   display: grid;
   align-content: start;
-  gap: 24px;
+  gap: 16px;
 }
 
 .graph-panel {
   display: grid;
-  gap: 14px;
-  padding: 22px;
+  gap: 10px;
+  padding: 16px;
 }
 
 .graph-panel--workspace {
@@ -742,25 +742,25 @@ function continueWorkspace() {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
+  gap: 8px;
 }
 
 .graph-panel__meta {
   display: block;
-  margin-top: 6px;
+  margin-top: 4px;
   color: var(--text-soft);
   font-size: 0.82rem;
-  line-height: 1.5;
+  line-height: 1.35;
 }
 
 .graph-panel__toggle {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   border: 1px solid rgba(184, 92, 56, 0.2);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.72);
   color: #8d4529;
-  font-size: 1.2rem;
+  font-size: 1.08rem;
   line-height: 1;
   cursor: pointer;
   transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
@@ -774,7 +774,7 @@ function continueWorkspace() {
 
 .graph-panel__body {
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .graph-panel__form {
@@ -805,8 +805,8 @@ function continueWorkspace() {
 
 .graph-palette__preset {
   display: grid;
-  gap: 8px;
-  padding: 14px;
+  gap: 6px;
+  padding: 10px;
   border: 1px solid rgba(184, 92, 56, 0.16);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.56);
@@ -828,7 +828,7 @@ function continueWorkspace() {
 .graph-palette__preset span {
   color: var(--text-soft);
   font-size: 0.82rem;
-  line-height: 1.5;
+  line-height: 1.35;
 }
 
 .graph-palette__swatches {
@@ -852,8 +852,8 @@ function continueWorkspace() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: 8px;
+  padding: 10px 12px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.46);
   border: 1px solid rgba(184, 92, 56, 0.1);
@@ -871,7 +871,7 @@ function continueWorkspace() {
 .graph-palette__field-copy span {
   color: var(--text-soft);
   font-size: 0.82rem;
-  line-height: 1.5;
+  line-height: 1.35;
 }
 
 .graph-palette__field-input {
@@ -902,13 +902,13 @@ function continueWorkspace() {
   margin: 0;
   padding-left: 18px;
   color: var(--text-soft);
-  line-height: 1.9;
+  line-height: 1.55;
 }
 
 .graph-view__canvas {
   display: grid;
-  gap: 18px;
-  padding: 18px;
+  gap: 12px;
+  padding: 14px;
 }
 
 .graph-view__canvas-head {
@@ -930,7 +930,7 @@ function continueWorkspace() {
 }
 
 .graph-view__canvas-tip {
-  padding: 10px 14px;
+  padding: 8px 11px;
   border-radius: 999px;
   background: rgba(54, 92, 75, 0.1);
   color: #365c4b;
