@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import QuickSwitcher from '@/components/QuickSwitcher.vue'
 import NotificationCenter from '@/components/NotificationCenter.vue'
@@ -14,17 +15,33 @@ const noteWorkspaceStore = useNoteWorkspaceStore()
 
 const navOpen = ref(false)
 const quickSwitcherOpen = ref(false)
+const moreNavOpen = ref(false)
+const appStandalone = ref(false)
+const pwaInstallPrompt = ref<BeforeInstallPromptEvent | null>(null)
 
-const navItems = [
-  { path: '/dashboard', label: '仪表盘', caption: '概览统计与灵感推荐' },
-  { path: '/folder', label: '文件与笔记', caption: '文件夹、收藏、回收站' },
-  { path: '/templates', label: '模板中心', caption: '常用结构与快速起草' },
-  { path: '/attachments', label: '附件中心', caption: '图片、PDF、Word 与未使用清理' },
-  { path: '/import', label: '导入中心', caption: 'Markdown、Obsidian 与附件导入' },
-  { path: '/graph', label: '知识图谱', caption: '关系连接与图谱洞察' },
-  { path: '/search', label: '全文搜索', caption: '标题、正文、标签联查' },
-  { path: '/share', label: '查看分享', caption: '粘贴分享链接或分享码' },
+type BeforeInstallPromptChoice = {
+  outcome: 'accepted' | 'dismissed'
+  platform: string
+}
+
+type BeforeInstallPromptEvent = Event & {
+  prompt: () => Promise<void>
+  userChoice: Promise<BeforeInstallPromptChoice>
+}
+
+const primaryNavItems = [
+  { path: '/dashboard', label: '首页', caption: '从这里继续当前任务' },
+  { path: '/folder', label: '文件与笔记', caption: '管理、收藏、回收站' },
+  { path: '/search', label: '搜索', caption: '快速找到已有内容' },
+  { path: '/share', label: '查看分享', caption: '输入分享链接或分享码' },
   { path: '/profile', label: '个人中心', caption: '资料、头像与账号设置' }
+]
+
+const secondaryNavItems = [
+  { path: '/templates', label: '模板中心', caption: '常用结构与快速起草' },
+  { path: '/attachments', label: '附件中心', caption: '图片、PDF、Word 管理' },
+  { path: '/import', label: '导入中心', caption: '批量导入外部资料' },
+  { path: '/graph', label: '知识图谱', caption: '查看笔记关系网络' }
 ]
 
 const mobileNavItems = [
@@ -48,6 +65,9 @@ const quickSwitcherShortcut = computed(() =>
     ? 'Cmd K'
     : 'Ctrl K'
 )
+const showPwaInstallAction = computed(
+  () => !appStandalone.value && (Boolean(pwaInstallPrompt.value) || isMobileBrowser())
+)
 const workspaceSummary = computed(() => {
   if (!workspaceOpenCount.value) {
     return '从任意页面打开笔记后，都会自动加入你的工作区标签。'
@@ -61,11 +81,24 @@ const workspaceSummary = computed(() => {
 
   return `当前已打开 ${workspaceOpenCount.value} 个编辑标签，${dirtySummary}${pinnedSummary}`
 })
+const secondaryNavActive = computed(() => secondaryNavItems.some((item) => isActive(item.path)))
 
 watch(
   () => authStore.user?.id ?? authStore.user?.username ?? null,
   (ownerKey) => {
     noteWorkspaceStore.hydrateForUser(ownerKey)
+  },
+  {
+    immediate: true
+  }
+)
+
+watch(
+  () => route.path,
+  () => {
+    if (secondaryNavActive.value) {
+      moreNavOpen.value = true
+    }
   },
   {
     immediate: true
@@ -132,6 +165,60 @@ function handleGlobalQuickSwitcher(event: KeyboardEvent) {
   openQuickSwitcher()
 }
 
+function isStandaloneMode() {
+  const standaloneNavigator = navigator as Navigator & {
+    standalone?: boolean
+  }
+
+  return window.matchMedia('(display-mode: standalone)').matches || standaloneNavigator.standalone === true
+}
+
+function isMobileBrowser() {
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+}
+
+function refreshStandaloneMode() {
+  appStandalone.value = isStandaloneMode()
+}
+
+function handleBeforeInstallPrompt(event: Event) {
+  event.preventDefault()
+  pwaInstallPrompt.value = event as BeforeInstallPromptEvent
+}
+
+function handleAppInstalled() {
+  pwaInstallPrompt.value = null
+  refreshStandaloneMode()
+  ElMessage.success('App 已安装到设备')
+}
+
+async function installPwa() {
+  if (appStandalone.value) {
+    ElMessage.success('当前已经是 App 模式')
+    return
+  }
+
+  if (pwaInstallPrompt.value) {
+    const installPrompt = pwaInstallPrompt.value
+    await installPrompt.prompt()
+    const choice = await installPrompt.userChoice
+
+    if (choice.outcome === 'accepted') {
+      pwaInstallPrompt.value = null
+    }
+
+    return
+  }
+
+  await ElMessageBox.alert(
+    'Android：用 Chrome 或 Edge 打开站点后，选择浏览器菜单里的“安装应用”。iPhone：用 Safari 打开站点后，点击分享按钮，再选择“添加到主屏幕”。',
+    '安装到手机桌面',
+    {
+      confirmButtonText: '知道了'
+    }
+  )
+}
+
 async function logout() {
   authStore.logout()
   noteWorkspaceStore.clear()
@@ -140,11 +227,16 @@ async function logout() {
 }
 
 onMounted(() => {
+  refreshStandaloneMode()
   window.addEventListener('keydown', handleGlobalQuickSwitcher)
+  window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+  window.addEventListener('appinstalled', handleAppInstalled)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleGlobalQuickSwitcher)
+  window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+  window.removeEventListener('appinstalled', handleAppInstalled)
 })
 </script>
 
@@ -163,6 +255,10 @@ onBeforeUnmount(() => {
         <strong>{{ authStore.displayName }}</strong>
         <span>{{ authStore.user?.role || '普通用户' }}</span>
         <small>{{ authStore.user?.email }}</small>
+        <div class="layout-shell__user-actions">
+          <el-button size="small" plain @click="navigate('/profile')">个人中心</el-button>
+          <el-button size="small" plain type="danger" @click="logout">退出登录</el-button>
+        </div>
       </div>
 
       <section class="layout-shell__workspace panel">
@@ -188,12 +284,13 @@ onBeforeUnmount(() => {
             {{ activeWorkspaceTab ? '继续编辑' : '打开工作区' }}
           </el-button>
           <el-button plain @click="createNote">新建草稿</el-button>
+          <el-button v-if="showPwaInstallAction" plain @click="installPwa">安装 App</el-button>
         </div>
       </section>
 
       <nav class="layout-shell__nav">
         <button
-          v-for="item in navItems"
+          v-for="item in primaryNavItems"
           :key="item.path"
           class="layout-shell__nav-item"
           :class="{ 'layout-shell__nav-item--active': isActive(item.path) }"
@@ -202,6 +299,32 @@ onBeforeUnmount(() => {
           <strong>{{ item.label }}</strong>
           <span>{{ item.caption }}</span>
         </button>
+
+        <button
+          type="button"
+          class="layout-shell__nav-item layout-shell__nav-more"
+          :class="{ 'layout-shell__nav-item--active': secondaryNavActive }"
+          @click="moreNavOpen = !moreNavOpen"
+        >
+          <span>
+            <strong>更多工具</strong>
+            <small>模板、附件、导入、图谱</small>
+          </span>
+          <b>{{ moreNavOpen ? '-' : '+' }}</b>
+        </button>
+
+        <div v-show="moreNavOpen" class="layout-shell__nav-secondary">
+          <button
+            v-for="item in secondaryNavItems"
+            :key="item.path"
+            class="layout-shell__nav-item layout-shell__nav-item--secondary"
+            :class="{ 'layout-shell__nav-item--active': isActive(item.path) }"
+            @click="navigate(item.path)"
+          >
+            <strong>{{ item.label }}</strong>
+            <span>{{ item.caption }}</span>
+          </button>
+        </div>
       </nav>
     </aside>
 
@@ -343,6 +466,17 @@ onBeforeUnmount(() => {
   color: var(--text-soft);
 }
 
+.layout-shell__user-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.layout-shell__user-actions :deep(.el-button) {
+  margin: 0;
+}
+
 .layout-shell__workspace-copy strong {
   display: block;
   margin-top: 6px;
@@ -405,6 +539,46 @@ onBeforeUnmount(() => {
 .layout-shell__nav-item span {
   color: var(--text-soft);
   font-size: 0.88rem;
+}
+
+.layout-shell__nav-more {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.layout-shell__nav-more > span {
+  display: grid;
+  gap: 4px;
+}
+
+.layout-shell__nav-more small {
+  color: var(--text-soft);
+  font-size: 0.82rem;
+}
+
+.layout-shell__nav-more b {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #8d4529;
+  font-weight: 800;
+}
+
+.layout-shell__nav-secondary {
+  display: grid;
+  gap: 6px;
+  padding: 6px 0 0 10px;
+  border-left: 1px solid rgba(184, 92, 56, 0.12);
+}
+
+.layout-shell__nav-item--secondary {
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.32);
 }
 
 .layout-shell__nav-item:hover,
@@ -578,13 +752,13 @@ onBeforeUnmount(() => {
 
 @media (max-width: 640px) {
   .layout-shell__main {
-    gap: 12px;
-    padding: 10px 10px calc(84px + env(safe-area-inset-bottom));
+    gap: 10px;
+    padding: 8px 8px calc(76px + env(safe-area-inset-bottom));
   }
 
   .layout-shell__aside {
-    width: min(292px, calc(100vw - 12px));
-    padding: 14px 12px calc(16px + env(safe-area-inset-bottom));
+    width: min(286px, calc(100vw - 10px));
+    padding: 12px 10px calc(14px + env(safe-area-inset-bottom));
   }
 
   .layout-shell__brand h1 {
@@ -609,21 +783,21 @@ onBeforeUnmount(() => {
 
   .layout-shell__header {
     position: sticky;
-    top: 8px;
+    top: 6px;
     z-index: 20;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: 20px;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 18px;
   }
 
   .layout-shell__header-left {
     min-width: 0;
     flex: 1 1 auto;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
   }
 
   .layout-shell__header-left .section-kicker {
@@ -633,14 +807,14 @@ onBeforeUnmount(() => {
   .layout-shell__header-left h2 {
     overflow: hidden;
     margin-top: 0;
-    font-size: 1.14rem;
+    font-size: 1.04rem;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   .layout-shell__menu {
     flex: 0 0 auto;
-    padding: 9px 13px;
+    padding: 8px 10px;
   }
 
   .layout-shell__switcher-trigger,
@@ -661,16 +835,16 @@ onBeforeUnmount(() => {
 
   .layout-shell__mobile-nav {
     position: fixed;
-    left: 10px;
-    right: 10px;
-    bottom: calc(10px + env(safe-area-inset-bottom));
+    left: 8px;
+    right: 8px;
+    bottom: calc(6px + env(safe-area-inset-bottom));
     z-index: 28;
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 6px;
-    padding: 8px;
+    gap: 4px;
+    padding: 6px;
     border: 1px solid rgba(141, 69, 41, 0.14);
-    border-radius: 24px;
+    border-radius: 20px;
     background:
       linear-gradient(180deg, rgba(255, 252, 247, 0.96), rgba(246, 237, 226, 0.94)),
       rgba(255, 255, 255, 0.92);
@@ -681,11 +855,11 @@ onBeforeUnmount(() => {
   .layout-shell__mobile-nav-item {
     display: grid;
     place-items: center;
-    gap: 3px;
+    gap: 2px;
     min-width: 0;
-    padding: 6px 2px;
+    padding: 5px 1px;
     border: 0;
-    border-radius: 18px;
+    border-radius: 14px;
     background: transparent;
     color: var(--text-soft);
     cursor: pointer;
@@ -695,19 +869,19 @@ onBeforeUnmount(() => {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
     border-radius: 999px;
     background: rgba(184, 92, 56, 0.08);
     color: #8d4529;
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 800;
   }
 
   .layout-shell__mobile-nav-item strong {
     overflow: hidden;
     max-width: 100%;
-    font-size: 0.72rem;
+    font-size: 0.66rem;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -725,11 +899,11 @@ onBeforeUnmount(() => {
 
 @media (max-width: 420px) {
   .layout-shell__main {
-    padding: 8px 8px calc(82px + env(safe-area-inset-bottom));
+    padding: 7px 7px calc(72px + env(safe-area-inset-bottom));
   }
 
   .layout-shell__header {
-    padding: 12px;
+    padding: 8px 10px;
   }
 
   .layout-shell__header-pill {
@@ -739,10 +913,10 @@ onBeforeUnmount(() => {
   }
 
   .layout-shell__mobile-nav {
-    left: 8px;
-    right: 8px;
-    bottom: calc(8px + env(safe-area-inset-bottom));
-    border-radius: 22px;
+    left: 6px;
+    right: 6px;
+    bottom: calc(5px + env(safe-area-inset-bottom));
+    border-radius: 18px;
   }
 }
 </style>

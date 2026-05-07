@@ -1,6 +1,7 @@
 import axios, {
   AxiosHeaders,
   type AxiosError,
+  type AxiosResponse,
   type InternalAxiosRequestConfig,
   type AxiosRequestConfig,
   type AxiosResponseHeaders,
@@ -9,14 +10,26 @@ import axios, {
 import type { ApiResult } from '@/types'
 
 export const TOKEN_KEY = 'knowledgepulse.access-token'
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1'
+
+export function buildApiUrl(path: string): string {
+  const normalizedBaseUrl = API_BASE_URL.replace(/\/+$/, '')
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`
+
+  return `${normalizedBaseUrl}${normalizedPath}`
+}
+
+function isNgrokApiBaseUrl(): boolean {
+  return /\.ngrok(-free)?\./i.test(API_BASE_URL)
+}
 
 const service = axios.create({
-  baseURL: '/api/v1',
+  baseURL: API_BASE_URL,
   timeout: 15000
 })
 
 const fileService = axios.create({
-  baseURL: '/api/v1',
+  baseURL: API_BASE_URL,
   timeout: 30000
 })
 
@@ -46,12 +59,26 @@ function shouldClearToken(config?: AxiosRequestConfig): boolean {
   return !isPublicShareRequest(config?.url)
 }
 
+function buildInvalidApiPayloadError(config?: AxiosRequestConfig): Error {
+  const requestUrl = config?.url ?? 'unknown'
+
+  return new Error(
+    `接口返回格式异常，请检查 VITE_API_BASE_URL。当前 API 地址为 ${API_BASE_URL}，请求路径为 ${requestUrl}。手机 App 不能使用 localhost 或相对路径访问电脑后端，请改成电脑局域网 IP、内网穿透地址或正式 HTTPS 域名。`
+  )
+}
+
 function applyAuthorizationHeader(config: InternalAxiosRequestConfig) {
   const token = getAccessToken()
 
   if (token) {
     const headers = AxiosHeaders.from(config.headers)
     headers.set('Authorization', `Bearer ${token}`)
+    config.headers = headers
+  }
+
+  if (isNgrokApiBaseUrl()) {
+    const headers = AxiosHeaders.from(config.headers)
+    headers.set('ngrok-skip-browser-warning', 'true')
     config.headers = headers
   }
 
@@ -202,27 +229,29 @@ async function extractBlobErrorMessage(error: AxiosError<ApiResult<never>>): Pro
   }
 }
 
+function unwrapApiResponse(response: AxiosResponse<ApiResult<unknown>>): unknown {
+  const payload = response.data
+
+  if (payload && typeof payload.code === 'number') {
+    if (payload.code === 200) {
+      return payload.data
+    }
+
+    if (payload.code === 401 && shouldClearToken(response.config)) {
+      clearAccessToken()
+    }
+
+    throw new Error(payload.message || '请求失败')
+  }
+
+  throw buildInvalidApiPayloadError(response.config)
+}
+
 service.interceptors.request.use((config) => applyAuthorizationHeader(config))
 fileService.interceptors.request.use((config) => applyAuthorizationHeader(config))
 
 service.interceptors.response.use(
-  (response) => {
-    const payload = response.data as ApiResult<unknown>
-
-    if (payload && typeof payload.code === 'number') {
-      if (payload.code === 200) {
-        return payload.data
-      }
-
-      if (payload.code === 401 && shouldClearToken(response.config)) {
-        clearAccessToken()
-      }
-
-      return Promise.reject(new Error(payload.message || '请求失败'))
-    }
-
-    return response.data
-  },
+  (response) => unwrapApiResponse(response) as AxiosResponse,
   (error: AxiosError<ApiResult<never>>) => {
     const message = error.response?.data?.message || error.message || '网络异常，请稍后重试'
 

@@ -4,7 +4,6 @@ import SockJS from 'sockjs-client'
 import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
-import PageHero from '@/components/PageHero.vue'
 import CollapsiblePanel from '@/components/CollapsiblePanel.vue'
 import FolderTreePanel from '@/components/FolderTreePanel.vue'
 import TagCloudPanel from '@/components/TagCloudPanel.vue'
@@ -19,6 +18,7 @@ import { createNote, exportNote, getNoteById, getNoteVersions, restoreNoteVersio
 import { generateShareLink, revokeShare } from '@/api/share'
 import { getTemplateById } from '@/api/template'
 import { searchUsers } from '@/api/user'
+import { buildApiUrl } from '@/api/axios'
 import { useAuthStore } from '@/stores/auth'
 import {
   useNoteWorkspaceStore,
@@ -1308,7 +1308,7 @@ function connectRealtime() {
   realtimeState.value = 'connecting'
 
   const client = new Client({
-    webSocketFactory: () => new SockJS('/api/v1/ws'),
+    webSocketFactory: () => new SockJS(buildApiUrl('/ws')),
     reconnectDelay: 5000,
     connectHeaders: authStore.accessToken
       ? {
@@ -2413,21 +2413,30 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
 
 <template>
   <div class="note-editor page-shell">
-    <PageHero
-      kicker="Editor"
-      :title="pageTitle"
-      :description="pageDescription"
-    >
-      <template #actions>
-        <el-button type="primary" :loading="saving" @click="saveNote">保存笔记</el-button>
-        <el-button plain :loading="templateSaving" @click="saveCurrentAsTemplate">保存为模板</el-button>
+    <section class="note-editor__command panel">
+      <div class="note-editor__command-copy">
+        <span class="section-kicker">Editor</span>
+        <h2>{{ pageTitle }}</h2>
+        <p>{{ pageDescription }}</p>
+      </div>
+
+      <div class="note-editor__command-actions">
+        <el-button type="primary" :loading="saving" @click="saveNote">保存</el-button>
+        <el-button plain @click="openExplorer">返回笔记库</el-button>
         <el-button v-if="noteForm.id" plain :loading="favoriteSubmitting" @click="toggleFavoriteCurrentNote">
-          {{ noteForm.favorited ? '取消收藏' : '收藏笔记' }}
+          {{ noteForm.favorited ? '取消收藏' : '收藏' }}
         </el-button>
-        <el-button plain @click="openExplorer">返回文件与笔记</el-button>
-        <el-button plain @click="deleteCurrentNote">{{ noteForm.id ? '移入回收站' : '关闭草稿标签' }}</el-button>
-      </template>
-    </PageHero>
+        <el-button plain :loading="templateSaving" @click="saveCurrentAsTemplate">存为模板</el-button>
+        <el-button plain @click="deleteCurrentNote">{{ noteForm.id ? '回收站' : '关闭草稿' }}</el-button>
+      </div>
+
+      <div class="note-editor__command-meta" aria-label="编辑状态">
+        <span :class="{ 'is-alert': dirty }">{{ dirty ? '未保存' : '已同步' }}</span>
+        <span>{{ currentPermissionLabel }}</span>
+        <span>{{ realtimeLabel }}</span>
+        <span>工作区 {{ workspaceTabs.length }}</span>
+      </div>
+    </section>
 
     <div class="note-editor__mobile-actions panel">
       <div class="note-editor__mobile-actions-copy">
@@ -2582,7 +2591,7 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
           :current-folder-id="noteForm.folderId"
           :loading="workspaceStore.explorerLoading"
           title="目录与归类"
-          :initially-open="true"
+          :initially-open="false"
           @select="handleFolderSelection"
           @create="workspaceStore.createFolder"
           @rename="handleFolderRename"
@@ -3183,6 +3192,64 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
   display: none;
 }
 
+.note-editor__command {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 16px;
+  background:
+    radial-gradient(circle at top right, rgba(54, 92, 75, 0.12), transparent 32%),
+    linear-gradient(135deg, rgba(255, 252, 247, 0.96), rgba(247, 241, 232, 0.88));
+}
+
+.note-editor__command-copy h2 {
+  overflow: hidden;
+  margin: 4px 0 6px;
+  font-family: var(--header-font);
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-editor__command-copy p {
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+.note-editor__command-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.note-editor__command-meta {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  gap: 8px;
+}
+
+.note-editor__command-meta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid rgba(54, 92, 75, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.66);
+  color: #365c4b;
+  font-size: 0.84rem;
+}
+
+.note-editor__command-meta span.is-alert {
+  border-color: rgba(184, 92, 56, 0.2);
+  background: rgba(184, 92, 56, 0.1);
+  color: #8d4529;
+}
+
 .note-editor__daily-banner {
   display: flex;
   align-items: center;
@@ -3337,7 +3404,7 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
 }
 
 .note-editor__workspace-summary {
-  display: grid;
+  display: none;
   gap: 8px;
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -3506,8 +3573,18 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
 .note-editor__layout {
   display: grid;
   gap: 16px;
-  grid-template-columns: 280px minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr) 320px;
   align-items: start;
+}
+
+.note-editor__main {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+
+.note-editor__aside,
+.note-editor__rail {
+  grid-column: 2;
 }
 
 .note-editor__aside,
@@ -4143,6 +4220,13 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
   .note-editor__layout {
     grid-template-columns: 1fr;
   }
+
+  .note-editor__main,
+  .note-editor__aside,
+  .note-editor__rail {
+    grid-column: auto;
+    grid-row: auto;
+  }
 }
 
 @media (max-width: 1080px) {
@@ -4241,23 +4325,23 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
 
 @media (max-width: 640px) {
   .note-editor {
-    gap: 14px;
+    gap: 10px;
   }
 
-  .note-editor :deep(.page-hero) {
+  .note-editor__command {
     display: none;
   }
 
   .note-editor__mobile-actions {
     position: sticky;
-    top: 72px;
+    top: 64px;
     z-index: 16;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    padding: 10px;
-    border-radius: 18px;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 16px;
   }
 
   .note-editor__mobile-actions-copy {
@@ -4274,7 +4358,7 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
 
   .note-editor__mobile-actions-copy strong {
     overflow: hidden;
-    max-width: 38vw;
+    max-width: 34vw;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -4282,7 +4366,12 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
   .note-editor__mobile-actions-buttons {
     display: flex;
     flex: 0 0 auto;
-    gap: 6px;
+    gap: 4px;
+  }
+
+  .note-editor__mobile-actions-buttons :deep(.el-button) {
+    min-height: 30px;
+    padding-inline: 8px;
   }
 
   .note-editor__daily-banner,
@@ -4290,7 +4379,7 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
   .note-editor__workspace,
   .note-editor__main,
   .rail-card {
-    padding: 16px;
+    padding: 12px;
   }
 
   .note-editor__daily-banner-actions,
@@ -4319,7 +4408,7 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
   .note-editor__layout,
   .note-editor__aside,
   .note-editor__rail {
-    gap: 16px;
+    gap: 12px;
   }
 
   .note-editor__workspace-copy,
@@ -4356,18 +4445,18 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
   }
 
   .note-editor__workspace-tabs :deep(.el-tabs__item) {
-    max-width: 230px;
-    padding: 10px 12px;
+    max-width: 196px;
+    padding: 8px 10px;
     border-radius: 16px;
   }
 
   .note-editor__tab-name {
-    max-width: 150px;
+    max-width: 126px;
   }
 
   .note-editor__meta {
-    gap: 12px;
-    margin-bottom: 14px;
+    gap: 8px;
+    margin-bottom: 10px;
   }
 
   .note-editor__status {
@@ -4375,8 +4464,8 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
   }
 
   .note-editor__toolbar {
-    gap: 12px;
-    margin-bottom: 14px;
+    gap: 8px;
+    margin-bottom: 10px;
   }
 
   .note-editor__region-warning {
@@ -4388,6 +4477,10 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
   .note-editor__hint {
     gap: 8px;
     font-size: 0.84rem;
+  }
+
+  .note-editor__hint span:last-child {
+    display: none;
   }
 
   .rail-card__attachment-summary {
@@ -4410,7 +4503,7 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
   .note-editor__workspace,
   .note-editor__main,
   .rail-card {
-    padding: 14px;
+    padding: 10px;
   }
 
   .note-editor__mobile-actions {
@@ -4418,8 +4511,8 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
   }
 
   .note-editor__mobile-actions-copy strong {
-    max-width: 30vw;
-    font-size: 0.9rem;
+    max-width: 28vw;
+    font-size: 0.86rem;
   }
 
   .note-editor__mobile-actions-buttons {
@@ -4441,11 +4534,11 @@ function handlePermissionChange(member: Collaborator, permission: string | numbe
   }
 
   .note-editor__tab-label {
-    max-width: 180px;
+    max-width: 160px;
   }
 
   .note-editor__tab-name {
-    max-width: 124px;
+    max-width: 108px;
   }
 
   .version-diff {

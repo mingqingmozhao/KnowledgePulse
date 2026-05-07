@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import type { EChartsOption } from 'echarts'
-import PageHero from '@/components/PageHero.vue'
 import EChartPanel from '@/components/EChartPanel.vue'
 import { useNoteWorkspaceStore } from '@/stores/noteWorkspace'
 import { useWorkspaceStore } from '@/stores/workspace'
@@ -15,6 +14,17 @@ import {
 } from '@/utils/noteWorkspace'
 
 type PanelKey = 'daily' | 'stats' | 'tags' | 'heatmap' | 'inspiration' | 'recent'
+const DASHBOARD_WIDGET_KEYS = ['daily', 'workspace', 'recent', 'notes', 'folders', 'tags'] as const
+type DashboardWidgetKey = (typeof DASHBOARD_WIDGET_KEYS)[number]
+type DashboardWidget = {
+  key: DashboardWidgetKey
+  label: string
+  value: string | number
+  meta: string
+  actionLabel: string
+  tone?: 'accent' | 'moss' | 'gold'
+  action: () => void | Promise<void>
+}
 
 type CalendarCell = {
   key: string
@@ -34,14 +44,24 @@ const todayKey = toDateKey(new Date())
 const currentMonth = ref(startOfMonth(parseDateKey(todayKey)))
 const selectedDate = ref(todayKey)
 const dailyOpening = ref(false)
-const compactDashboard = typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches
+const DASHBOARD_WIDGET_ORDER_STORAGE_KEY = 'knowledgepulse.dashboard-widget-order'
+const dashboardWidgetOrder = ref<DashboardWidgetKey[]>(readDashboardWidgetOrder())
+const dashboardWidgetDragKey = ref<DashboardWidgetKey | null>(null)
+let dashboardWidgetDrag: {
+  key: DashboardWidgetKey
+  pointerId: number
+  startX: number
+  startY: number
+} | null = null
+let dashboardWidgetDidDrag = false
+let suppressDashboardWidgetClick = false
 
 const panelState = reactive<Record<PanelKey, boolean>>({
-  daily: !compactDashboard,
-  stats: !compactDashboard,
+  daily: false,
+  stats: false,
   tags: false,
   heatmap: false,
-  inspiration: !compactDashboard,
+  inspiration: false,
   recent: true
 })
 
@@ -237,6 +257,120 @@ const heatmapOption = computed(
 const recentNotes = computed(() => workspaceStore.notes.slice(0, 4))
 const inspirationRecommendations = computed(() => workspaceStore.inspiration?.recommendations ?? [])
 const inspirationPrompts = computed(() => workspaceStore.inspiration?.inspirationPrompts ?? [])
+const startSummary = computed(() => {
+  if (workspaceDirtyCount.value > 0) {
+    return `你有 ${workspaceDirtyCount.value} 个未保存标签。建议先回工作区确认内容，避免继续分散注意力。`
+  }
+
+  if (activeWorkspaceTab.value) {
+    return `当前工作区停在「${activeWorkspaceTab.value.title}」。如果不确定从哪里开始，先继续它。`
+  }
+
+  if (recentNotes.value.length) {
+    return '最近笔记里通常保留着最完整的上下文。先接着上一件事做，比重新找入口更省力。'
+  }
+
+  return '知识库还比较空。建议先新建一篇草稿，或者把已有 Markdown、PDF、Word 从导入中心放进来。'
+})
+const primaryStartLabel = computed(() => {
+  if (workspaceDirtyCount.value > 0 || activeWorkspaceTab.value) {
+    return '继续当前工作区'
+  }
+
+  if (recentNotes.value.length) {
+    return '打开最近笔记'
+  }
+
+  return '新建第一篇草稿'
+})
+const dashboardWidgetMap = computed<Record<DashboardWidgetKey, DashboardWidget>>(() => {
+  const [noteStat, folderStat, tagStat] = stats.value
+
+  return {
+    daily: {
+      key: 'daily',
+      label: '每日日记',
+      value: selectedDateHasNote.value ? '续写' : '新建',
+      meta: formatDateOnly(todayKey),
+      actionLabel: selectedDateHasNote.value ? '打开今天' : '立即记录',
+      tone: 'accent',
+      action: openSelectedDailyNote
+    },
+    workspace: {
+      key: 'workspace',
+      label: '工作区',
+      value: workspaceOpenCount.value,
+      meta: workspaceDirtyCount.value ? `${workspaceDirtyCount.value} 个未保存` : '都已同步',
+      actionLabel: '继续',
+      tone: 'moss',
+      action: continueWorkspace
+    },
+    recent: {
+      key: 'recent',
+      label: '最近笔记',
+      value: recentNotes.value.length,
+      meta: recentNotes.value[0]?.title || '暂无最近内容',
+      actionLabel: '打开',
+      action: () => {
+        const [latestNote] = recentNotes.value
+
+        if (latestNote) {
+          openRecentNote(latestNote.id)
+          return
+        }
+
+        createNote()
+      }
+    },
+    notes: {
+      key: 'notes',
+      label: noteStat.label,
+      value: noteStat.value,
+      meta: noteStat.note,
+      actionLabel: '查看指标',
+      tone: 'gold',
+      action: () => openPanelAndJump('stats', 'dashboard-stats')
+    },
+    folders: {
+      key: 'folders',
+      label: folderStat.label,
+      value: folderStat.value,
+      meta: folderStat.note,
+      actionLabel: '查看指标',
+      action: () => openPanelAndJump('stats', 'dashboard-stats')
+    },
+    tags: {
+      key: 'tags',
+      label: tagStat.label,
+      value: tagStat.value,
+      meta: tagStat.note,
+      actionLabel: '查看标签',
+      tone: 'moss',
+      action: () => openPanelAndJump('tags', 'dashboard-inspiration')
+    }
+  }
+})
+const orderedDashboardWidgets = computed(() =>
+  dashboardWidgetOrder.value.map((key) => dashboardWidgetMap.value[key]).filter(Boolean)
+)
+
+watch(
+  dashboardWidgetOrder,
+  (order) => {
+    try {
+      window.localStorage.setItem(DASHBOARD_WIDGET_ORDER_STORAGE_KEY, JSON.stringify(order))
+    } catch {
+      // 排序偏好失败时不影响首页核心操作。
+    }
+  },
+  {
+    deep: true
+  }
+)
+
+onBeforeUnmount(() => {
+  teardownDashboardWidgetDrag()
+})
 
 async function bootstrapDashboard() {
   try {
@@ -353,10 +487,6 @@ function createNote() {
   void router.push(buildDraftNoteRoute())
 }
 
-function openWorkspace() {
-  void router.push('/folder')
-}
-
 function continueWorkspace() {
   if (!activeWorkspaceTab.value) {
     void router.push('/folder')
@@ -364,6 +494,141 @@ function continueWorkspace() {
   }
 
   void router.push(buildWorkspaceTabRoute(activeWorkspaceTab.value))
+}
+
+function runPrimaryStartAction() {
+  if (workspaceDirtyCount.value > 0 || activeWorkspaceTab.value) {
+    continueWorkspace()
+    return
+  }
+
+  const [latestNote] = recentNotes.value
+
+  if (latestNote) {
+    openRecentNote(latestNote.id)
+    return
+  }
+
+  createNote()
+}
+
+function readDashboardWidgetOrder(): DashboardWidgetKey[] {
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(DASHBOARD_WIDGET_ORDER_STORAGE_KEY) || 'null') as unknown
+
+    if (Array.isArray(parsed)) {
+      return normalizeDashboardWidgetOrder(parsed)
+    }
+  } catch {
+    return [...DASHBOARD_WIDGET_KEYS]
+  }
+
+  return [...DASHBOARD_WIDGET_KEYS]
+}
+
+function normalizeDashboardWidgetOrder(order: unknown[]): DashboardWidgetKey[] {
+  const normalized = order.filter(isDashboardWidgetKey)
+
+  DASHBOARD_WIDGET_KEYS.forEach((key) => {
+    if (!normalized.includes(key)) {
+      normalized.push(key)
+    }
+  })
+
+  return normalized
+}
+
+function isDashboardWidgetKey(value: unknown): value is DashboardWidgetKey {
+  return typeof value === 'string' && DASHBOARD_WIDGET_KEYS.includes(value as DashboardWidgetKey)
+}
+
+function resetDashboardWidgetOrder() {
+  dashboardWidgetOrder.value = [...DASHBOARD_WIDGET_KEYS]
+}
+
+function startDashboardWidgetDrag(event: PointerEvent, key: DashboardWidgetKey) {
+  if (event.button !== 0) {
+    return
+  }
+
+  dashboardWidgetDrag = {
+    key,
+    pointerId: event.pointerId,
+    startX: event.clientX,
+    startY: event.clientY
+  }
+  dashboardWidgetDragKey.value = key
+  dashboardWidgetDidDrag = false
+
+  const target = event.currentTarget as HTMLElement | null
+  target?.setPointerCapture?.(event.pointerId)
+  document.addEventListener('pointermove', handleDashboardWidgetPointerMove)
+  document.addEventListener('pointerup', stopDashboardWidgetDrag, { once: true })
+  document.addEventListener('pointercancel', stopDashboardWidgetDrag, { once: true })
+}
+
+function handleDashboardWidgetPointerMove(event: PointerEvent) {
+  if (!dashboardWidgetDrag || event.pointerId !== dashboardWidgetDrag.pointerId) {
+    return
+  }
+
+  const deltaX = event.clientX - dashboardWidgetDrag.startX
+  const deltaY = event.clientY - dashboardWidgetDrag.startY
+
+  if (Math.abs(deltaX) + Math.abs(deltaY) <= 8 && !dashboardWidgetDidDrag) {
+    return
+  }
+
+  dashboardWidgetDidDrag = true
+  event.preventDefault()
+
+  const target = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement | null
+  const overKey = target?.closest<HTMLElement>('[data-dashboard-widget-key]')?.dataset.dashboardWidgetKey
+
+  if (isDashboardWidgetKey(overKey) && overKey !== dashboardWidgetDrag.key) {
+    moveDashboardWidget(dashboardWidgetDrag.key, overKey)
+  }
+}
+
+function moveDashboardWidget(sourceKey: DashboardWidgetKey, targetKey: DashboardWidgetKey) {
+  const nextOrder = [...dashboardWidgetOrder.value]
+  const sourceIndex = nextOrder.indexOf(sourceKey)
+  const targetIndex = nextOrder.indexOf(targetKey)
+
+  if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) {
+    return
+  }
+
+  nextOrder.splice(sourceIndex, 1)
+  nextOrder.splice(targetIndex, 0, sourceKey)
+  dashboardWidgetOrder.value = nextOrder
+}
+
+function stopDashboardWidgetDrag() {
+  if (dashboardWidgetDidDrag) {
+    suppressDashboardWidgetClick = true
+    window.setTimeout(() => {
+      suppressDashboardWidgetClick = false
+    }, 0)
+  }
+
+  teardownDashboardWidgetDrag()
+}
+
+function teardownDashboardWidgetDrag() {
+  dashboardWidgetDrag = null
+  dashboardWidgetDragKey.value = null
+  document.removeEventListener('pointermove', handleDashboardWidgetPointerMove)
+  document.removeEventListener('pointerup', stopDashboardWidgetDrag)
+  document.removeEventListener('pointercancel', stopDashboardWidgetDrag)
+}
+
+function runDashboardWidgetAction(widget: DashboardWidget) {
+  if (suppressDashboardWidgetClick) {
+    return
+  }
+
+  void widget.action()
 }
 
 function togglePanel(panel: PanelKey) {
@@ -374,6 +639,13 @@ function jumpToDashboardSection(sectionId: string) {
   document.getElementById(sectionId)?.scrollIntoView({
     behavior: 'smooth',
     block: 'start'
+  })
+}
+
+function openPanelAndJump(panel: PanelKey, sectionId: string) {
+  panelState[panel] = true
+  window.requestAnimationFrame(() => {
+    jumpToDashboardSection(sectionId)
   })
 }
 
@@ -388,56 +660,78 @@ function getPanelToggleTitle(panel: PanelKey) {
 
 <template>
   <div class="dashboard-view page-shell">
-    <PageHero
-      kicker="Dashboard"
-      title="知识工作台总览"
-      description="从工作区、每日日记、主题分布和最近编辑四个方向，快速回到你现在最值得继续推进的内容。"
-    >
-      <template #actions>
-        <el-button type="primary" @click="createNote">新建草稿</el-button>
-        <el-button plain @click="openWorkspace">打开文件与笔记</el-button>
-      </template>
-    </PageHero>
+    <section class="dashboard-widget-board panel" aria-label="首页快捷组件">
+      <div class="dashboard-widget-board__head">
+        <div>
+          <strong>首页快捷组件</strong>
+          <span>点击进入，按住拖动可以交换位置。</span>
+        </div>
+        <button type="button" class="dashboard-widget-board__reset" @click="resetDashboardWidgetOrder">重置</button>
+      </div>
+
+      <div class="dashboard-widget-board__grid">
+        <button
+          v-for="widget in orderedDashboardWidgets"
+          :key="widget.key"
+          type="button"
+          class="dashboard-widget-tile"
+          :class="[
+            widget.tone ? `is-${widget.tone}` : '',
+            dashboardWidgetDragKey === widget.key ? 'is-dragging' : ''
+          ]"
+          :data-dashboard-widget-key="widget.key"
+          @dragstart.prevent
+          @pointerdown="startDashboardWidgetDrag($event, widget.key)"
+          @click="runDashboardWidgetAction(widget)"
+        >
+          <span class="dashboard-widget-tile__drag">拖动</span>
+          <span class="dashboard-widget-tile__label">{{ widget.label }}</span>
+          <strong>{{ widget.value }}</strong>
+          <small class="dashboard-widget-tile__meta">{{ widget.meta }}</small>
+          <span class="dashboard-widget-tile__action">{{ widget.actionLabel }}</span>
+        </button>
+      </div>
+    </section>
 
     <nav class="dashboard-mobile-jump panel" aria-label="仪表盘快捷跳转">
       <button type="button" @click="jumpToDashboardSection('dashboard-workspace')">工作区</button>
-      <button type="button" @click="jumpToDashboardSection('dashboard-recent')">最近</button>
-      <button type="button" @click="jumpToDashboardSection('dashboard-daily')">日记</button>
-      <button type="button" @click="jumpToDashboardSection('dashboard-stats')">指标</button>
-      <button type="button" @click="jumpToDashboardSection('dashboard-inspiration')">灵感</button>
+      <button type="button" @click="openPanelAndJump('recent', 'dashboard-recent')">最近</button>
+      <button type="button" @click="openPanelAndJump('daily', 'dashboard-daily')">日记</button>
+      <button type="button" @click="openPanelAndJump('stats', 'dashboard-stats')">指标</button>
+      <button type="button" @click="openPanelAndJump('inspiration', 'dashboard-inspiration')">灵感</button>
     </nav>
 
-    <section id="dashboard-workspace" class="dashboard-workspace panel">
-      <div class="dashboard-workspace__copy">
-        <span class="section-kicker">Workspace</span>
-        <h3 class="section-title">{{ activeWorkspaceTab?.title || '当前还没有打开中的工作区标签' }}</h3>
-        <p>
-          {{
-            workspaceOpenCount
-              ? `你现在有 ${workspaceOpenCount} 个工作区标签${workspaceDirtyCount ? `，其中 ${workspaceDirtyCount} 个还没保存` : ''}。`
-              : '从最近笔记、搜索结果或知识图谱打开内容时，都会自动进入工作区，方便并行查看和切换。'
-          }}
-        </p>
+    <section id="dashboard-workspace" class="dashboard-start panel">
+      <div class="dashboard-start__copy">
+        <span class="section-kicker">Start Here</span>
+        <h2>先做一件明确的事</h2>
+        <p>{{ startSummary }}</p>
+
+        <div class="dashboard-start__actions">
+          <el-button type="primary" @click="runPrimaryStartAction">{{ primaryStartLabel }}</el-button>
+          <el-button plain :loading="dailyOpening" @click="openSelectedDailyNote">
+            {{ selectedDateHasNote ? '打开今天的日记' : '写今天的日记' }}
+          </el-button>
+          <el-button plain @click="createNote">新建草稿</el-button>
+        </div>
       </div>
 
-      <div class="dashboard-workspace__stats">
-        <article class="dashboard-workspace__stat">
-          <span>打开中</span>
+      <div class="dashboard-start__cards" aria-label="当前状态">
+        <article>
+          <span>工作区</span>
           <strong>{{ workspaceOpenCount }}</strong>
-          <small>像浏览器标签页一样切换</small>
+          <small>{{ workspaceDirtyCount ? `${workspaceDirtyCount} 个未保存` : '都已同步' }}</small>
         </article>
-        <article class="dashboard-workspace__stat">
-          <span>未保存</span>
-          <strong>{{ workspaceDirtyCount }}</strong>
-          <small>刷新前也会尝试恢复草稿</small>
+        <article>
+          <span>最近笔记</span>
+          <strong>{{ recentNotes.length }}</strong>
+          <small>{{ recentNotes[0]?.title || '暂无最近内容' }}</small>
         </article>
-      </div>
-
-      <div class="dashboard-workspace__actions">
-        <el-button type="primary" plain @click="continueWorkspace">
-          {{ activeWorkspaceTab ? '继续当前工作区' : '去工作区看看' }}
-        </el-button>
-        <el-button plain @click="createNote">快速起草</el-button>
+        <article>
+          <span>今日日记</span>
+          <strong>{{ selectedDateHasNote ? '已写' : '待写' }}</strong>
+          <small>{{ formatDateOnly(todayKey) }}</small>
+        </article>
       </div>
     </section>
 
@@ -774,6 +1068,8 @@ function getPanelToggleTitle(panel: PanelKey) {
 
 <style scoped>
 .dashboard-view,
+.dashboard-start,
+.dashboard-start__copy,
 .dashboard-workspace,
 .dashboard-daily,
 .dashboard-overview,
@@ -795,11 +1091,236 @@ function getPanelToggleTitle(panel: PanelKey) {
   display: none;
 }
 
+.dashboard-widget-board {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 56, 0.12), transparent 34%),
+    linear-gradient(135deg, rgba(255, 252, 247, 0.98), rgba(247, 241, 232, 0.9));
+}
+
+.dashboard-widget-board__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dashboard-widget-board__head > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.dashboard-widget-board__head strong {
+  font-family: var(--header-font);
+  font-size: 1.08rem;
+}
+
+.dashboard-widget-board__head span {
+  overflow: hidden;
+  color: var(--text-soft);
+  font-size: 0.86rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-widget-board__reset {
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(184, 92, 56, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #8d4529;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.dashboard-widget-board__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.dashboard-widget-tile {
+  position: relative;
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  min-height: 92px;
+  gap: 3px;
+  padding: 10px;
+  border: 1px solid rgba(184, 92, 56, 0.12);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 56, 0.08), transparent 40%),
+    rgba(255, 255, 255, 0.72);
+  color: inherit;
+  cursor: grab;
+  text-align: left;
+  touch-action: none;
+  user-select: none;
+  transition:
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    background-color 0.16s ease;
+}
+
+.dashboard-widget-tile:hover {
+  transform: translateY(-1px);
+  border-color: rgba(141, 69, 41, 0.28);
+  box-shadow: 0 12px 26px rgba(93, 63, 40, 0.08);
+}
+
+.dashboard-widget-tile:active,
+.dashboard-widget-tile.is-dragging {
+  cursor: grabbing;
+}
+
+.dashboard-widget-tile.is-dragging {
+  z-index: 2;
+  transform: scale(0.98);
+  border-color: rgba(54, 92, 75, 0.34);
+  box-shadow: 0 16px 34px rgba(54, 92, 75, 0.14);
+}
+
+.dashboard-widget-tile.is-accent {
+  border-color: rgba(184, 92, 56, 0.18);
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 56, 0.16), transparent 42%),
+    rgba(255, 255, 255, 0.78);
+}
+
+.dashboard-widget-tile.is-moss {
+  border-color: rgba(54, 92, 75, 0.18);
+  background:
+    radial-gradient(circle at top right, rgba(54, 92, 75, 0.14), transparent 42%),
+    rgba(255, 255, 255, 0.74);
+}
+
+.dashboard-widget-tile.is-gold {
+  border-color: rgba(197, 157, 88, 0.22);
+  background:
+    radial-gradient(circle at top right, rgba(197, 157, 88, 0.18), transparent 42%),
+    rgba(255, 255, 255, 0.74);
+}
+
+.dashboard-widget-tile__drag {
+  justify-self: start;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(54, 92, 75, 0.08);
+  color: #365c4b;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.dashboard-widget-tile__label,
+.dashboard-widget-tile__meta {
+  overflow: hidden;
+  color: var(--text-soft);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-widget-tile__label {
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.dashboard-widget-tile strong {
+  overflow: hidden;
+  color: var(--accent-strong);
+  font-size: clamp(1rem, 1.8vw, 1.22rem);
+  line-height: 1.05;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-widget-tile__meta {
+  font-size: 0.72rem;
+}
+
+.dashboard-widget-tile__action {
+  margin-top: 2px;
+  color: #8d4529;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
 .dashboard-workspace,
+.dashboard-start,
 .dashboard-daily,
 .dashboard-overview,
 .dashboard-card {
   padding: 18px;
+}
+
+.dashboard-start {
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.9fr);
+  align-items: stretch;
+  background:
+    radial-gradient(circle at top right, rgba(54, 92, 75, 0.14), transparent 32%),
+    linear-gradient(135deg, rgba(255, 252, 247, 0.96), rgba(247, 241, 232, 0.88));
+}
+
+.dashboard-start__copy h2 {
+  margin: 0;
+  font-family: var(--header-font);
+  font-size: clamp(1.55rem, 3vw, 2.4rem);
+  line-height: 1.15;
+}
+
+.dashboard-start__copy p {
+  max-width: 680px;
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.58;
+}
+
+.dashboard-start__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dashboard-start__cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  align-content: stretch;
+}
+
+.dashboard-start__cards article {
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(54, 92, 75, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.64);
+}
+
+.dashboard-start__cards span,
+.dashboard-start__cards small {
+  overflow: hidden;
+  color: var(--text-soft);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-start__cards strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 1.28rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dashboard-workspace {
@@ -839,6 +1360,7 @@ function getPanelToggleTitle(panel: PanelKey) {
 
 .dashboard-daily__focus-card p,
 .dashboard-panel__meta,
+.dashboard-start__copy p,
 .dashboard-workspace__copy p,
 .recent-list__copy span,
 .recent-list__actions small,
@@ -1201,6 +1723,7 @@ function getPanelToggleTitle(panel: PanelKey) {
 }
 
 @media (max-width: 1180px) {
+  .dashboard-start,
   .dashboard-workspace,
   .dashboard-daily__body {
     grid-template-columns: 1fr;
@@ -1236,15 +1759,76 @@ function getPanelToggleTitle(panel: PanelKey) {
 }
 
 @media (max-width: 640px) {
+  .dashboard-widget-board {
+    gap: 7px;
+    padding: 8px;
+    border-radius: 16px;
+  }
+
+  .dashboard-widget-board__head {
+    gap: 8px;
+  }
+
+  .dashboard-widget-board__head strong {
+    font-size: 0.98rem;
+  }
+
+  .dashboard-widget-board__head span {
+    max-width: 190px;
+    font-size: 0.74rem;
+  }
+
+  .dashboard-widget-board__reset {
+    min-height: 28px;
+    padding: 0 9px;
+    font-size: 0.74rem;
+  }
+
+  .dashboard-widget-board__grid {
+    gap: 6px;
+  }
+
+  .dashboard-widget-tile {
+    min-height: 72px;
+    gap: 2px;
+    padding: 7px;
+    border-radius: 13px;
+  }
+
+  .dashboard-widget-tile__drag {
+    padding: 1px 5px;
+    font-size: 0.58rem;
+  }
+
+  .dashboard-widget-tile__label {
+    font-size: 0.68rem;
+  }
+
+  .dashboard-widget-tile strong {
+    font-size: 0.96rem;
+  }
+
+  .dashboard-widget-tile__meta {
+    font-size: 0.62rem;
+  }
+
+  .dashboard-widget-tile__action {
+    overflow: hidden;
+    font-size: 0.64rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .dashboard-start {
+    display: none;
+  }
+
   .dashboard-mobile-jump {
-    position: sticky;
-    top: 72px;
-    z-index: 12;
     display: flex;
     gap: 8px;
     overflow-x: auto;
-    padding: 8px;
-    border-radius: 18px;
+    padding: 5px;
+    border-radius: 16px;
     scrollbar-width: none;
   }
 
@@ -1254,13 +1838,13 @@ function getPanelToggleTitle(panel: PanelKey) {
 
   .dashboard-mobile-jump button {
     flex: 0 0 auto;
-    min-height: 34px;
-    padding: 0 12px;
+    min-height: 30px;
+    padding: 0 9px;
     border: 1px solid rgba(184, 92, 56, 0.14);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.74);
     color: #8d4529;
-    font-size: 0.84rem;
+    font-size: 0.8rem;
     font-weight: 700;
   }
 
@@ -1268,13 +1852,41 @@ function getPanelToggleTitle(panel: PanelKey) {
   .dashboard-daily,
   .dashboard-overview,
   .dashboard-card {
-    padding: 16px;
+    padding: 12px;
   }
 
   .dashboard-panel__meta,
+  .dashboard-start__copy p,
   .dashboard-workspace__copy p,
   .dashboard-daily__highlight p {
     display: none;
+  }
+
+  .dashboard-start__cards {
+    display: flex;
+    grid-template-columns: none;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+
+  .dashboard-start__cards::-webkit-scrollbar {
+    display: none;
+  }
+
+  .dashboard-start__cards article {
+    flex: 0 0 154px;
+    padding: 12px;
+  }
+
+  .dashboard-start__actions {
+    align-items: stretch;
+  }
+
+  .dashboard-start__actions :deep(.el-button) {
+    flex: 1 1 128px;
+    min-width: 0;
   }
 
   .dashboard-workspace {
@@ -1287,7 +1899,7 @@ function getPanelToggleTitle(panel: PanelKey) {
 
   .dashboard-workspace__stats,
   .dashboard-daily__metrics {
-    gap: 10px;
+    gap: 8px;
   }
 
   .dashboard-workspace__stat small,
@@ -1312,7 +1924,7 @@ function getPanelToggleTitle(panel: PanelKey) {
   .dashboard-workspace__stat,
   .dashboard-daily__highlight,
   .recent-list__item {
-    padding: 14px;
+    padding: 12px;
   }
 
   .dashboard-calendar {
@@ -1343,11 +1955,24 @@ function getPanelToggleTitle(panel: PanelKey) {
 }
 
 @media (max-width: 420px) {
+  .dashboard-widget-board__head span,
+  .dashboard-widget-tile__meta {
+    display: none;
+  }
+
+  .dashboard-widget-tile {
+    min-height: 62px;
+  }
+
+  .dashboard-widget-tile__action {
+    font-size: 0.6rem;
+  }
+
   .dashboard-workspace,
   .dashboard-daily,
   .dashboard-overview,
   .dashboard-card {
-    padding: 14px;
+    padding: 10px;
   }
 
   .dashboard-calendar {
@@ -1355,7 +1980,7 @@ function getPanelToggleTitle(panel: PanelKey) {
   }
 
   .dashboard-calendar__cell {
-    min-height: 40px;
+    min-height: 38px;
     border-radius: 12px;
   }
 

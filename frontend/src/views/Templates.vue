@@ -172,8 +172,8 @@ async function startFromTemplate(template: NoteTemplate) {
   await router.push(buildDraftNoteRoute(undefined, template.id))
 }
 
-function isGroupInitiallyOpen(index: number) {
-  return Boolean(searchKeyword.value.trim()) || index === 0
+function isGroupInitiallyOpen() {
+  return Boolean(searchKeyword.value.trim())
 }
 
 function getGroupMeta(templates: NoteTemplate[]) {
@@ -204,7 +204,7 @@ function getTemplatePreview(template: NoteTemplate) {
       <div class="templates-hero__copy">
         <span class="section-kicker">Template Center</span>
         <h1>模板中心</h1>
-        <p>把高频笔记结构沉淀成模板，起草项目复盘、会议纪要、读书笔记时不用每次从空白开始。</p>
+        <p>先搜索要用的结构；分类默认收起，避免模板太多时一屏铺满。</p>
       </div>
 
       <div class="templates-hero__actions">
@@ -216,38 +216,26 @@ function getTemplatePreview(template: NoteTemplate) {
         />
         <el-button type="primary" @click="openCreateDialog">新建模板</el-button>
       </div>
-    </section>
 
-    <section class="templates-stats">
-      <article class="templates-stat">
-        <span>系统模板</span>
-        <strong>{{ systemTemplateCount }}</strong>
-        <small>开箱即用</small>
-      </article>
-      <article class="templates-stat">
-        <span>我的模板</span>
-        <strong>{{ customTemplateCount }}</strong>
-        <small>可编辑复用</small>
-      </article>
-      <article class="templates-stat templates-stat--accent">
-        <span>可见模板</span>
-        <strong>{{ filteredTemplates.length }}</strong>
-        <small>当前筛选结果</small>
-      </article>
+      <div class="templates-hero__meta" aria-label="模板状态">
+        <span>系统 {{ systemTemplateCount }}</span>
+        <span>我的 {{ customTemplateCount }}</span>
+        <span>当前可见 {{ filteredTemplates.length }}</span>
+      </div>
     </section>
 
     <el-skeleton :loading="workspaceStore.templateLoading" animated :rows="8">
       <template #default>
         <div v-if="groupedTemplates.length" class="templates-groups">
           <CollapsiblePanel
-            v-for="(group, index) in groupedTemplates"
+            v-for="group in groupedTemplates"
             :key="group.category"
             class="templates-group"
             tag="section"
             kicker="Category"
             :title="group.category"
             :meta="getGroupMeta(group.templates)"
-            :initially-open="isGroupInitiallyOpen(index)"
+            :initially-open="isGroupInitiallyOpen()"
             body-class="templates-group__body"
           >
             <div class="templates-list">
@@ -351,11 +339,11 @@ function getTemplatePreview(template: NoteTemplate) {
 }
 
 .templates-hero {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.8fr);
+  gap: 12px;
   align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 20px;
+  padding: 16px;
   overflow: hidden;
   background:
     radial-gradient(circle at 10% 20%, rgba(255, 193, 79, 0.24), transparent 28%),
@@ -367,8 +355,8 @@ function getTemplatePreview(template: NoteTemplate) {
 }
 
 .templates-hero h1 {
-  margin: 6px 0 8px;
-  font-size: clamp(26px, 3.5vw, 40px);
+  margin: 4px 0 6px;
+  font-size: clamp(24px, 3vw, 34px);
   color: #243026;
 }
 
@@ -382,11 +370,30 @@ function getTemplatePreview(template: NoteTemplate) {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: min(420px, 100%);
+  min-width: 0;
 }
 
 .templates-hero__search {
   flex: 1;
+}
+
+.templates-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  gap: 8px;
+}
+
+.templates-hero__meta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid rgba(82, 102, 84, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.66);
+  color: #526654;
+  font-size: 0.84rem;
 }
 
 .templates-stats {
@@ -587,9 +594,11 @@ function getTemplatePreview(template: NoteTemplate) {
 }
 
 @media (max-width: 900px) {
-  .templates-hero,
+  .templates-hero {
+    grid-template-columns: 1fr;
+  }
+
   .templates-hero__actions {
-    flex-direction: column;
     align-items: stretch;
   }
 
@@ -604,7 +613,7 @@ function getTemplatePreview(template: NoteTemplate) {
 
 @media (max-width: 640px) {
   .templates-hero {
-    padding: 16px;
+    padding: 12px;
   }
 
   .templates-hero p {
@@ -624,8 +633,8 @@ function getTemplatePreview(template: NoteTemplate) {
   }
 
   .templates-stat {
-    flex: 0 0 138px;
-    padding: 10px;
+    flex: 0 0 122px;
+    padding: 9px 10px;
   }
 
   .templates-stat strong {
@@ -638,11 +647,13 @@ function getTemplatePreview(template: NoteTemplate) {
   }
 
   .templates-list {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+    gap: 10px;
   }
 
   .template-card {
     min-height: auto;
+    padding: 12px;
   }
 
   .template-card__preview {
@@ -662,21 +673,21 @@ function getTemplatePreview(template: NoteTemplate) {
 
 @media (max-width: 420px) {
   .templates-page {
-    gap: 12px;
+    gap: 10px;
   }
 
   .templates-hero,
   .templates-group,
   .template-card {
-    padding: 16px;
+    padding: 10px;
   }
 
   .templates-hero h1 {
-    font-size: 2rem;
+    font-size: 1.42rem;
   }
 
   .templates-stat {
-    padding: 16px;
+    padding: 9px 10px;
   }
 
   .template-card__actions :deep(.el-button) {

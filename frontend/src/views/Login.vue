@@ -227,12 +227,37 @@ async function submitLogin() {
 
 @media (max-width: 640px) {
   .auth-shell {
-    padding: 16px;
+    align-content: start;
+    gap: 10px;
+    padding: 10px;
   }
 
   .auth-shell__intro,
   .auth-shell__form {
-    padding: 24px;
+    padding: 16px;
+  }
+
+  .auth-shell__form {
+    order: 1;
+  }
+
+  .auth-shell__intro {
+    order: 2;
+    gap: 8px;
+  }
+
+  .auth-shell__intro p,
+  .auth-shell__highlights,
+  .auth-shell__form-header p {
+    display: none;
+  }
+
+  .auth-form {
+    margin-top: 16px;
+  }
+
+  .auth-shell__footer {
+    margin-top: 14px;
   }
 }
 
@@ -243,15 +268,11 @@ async function submitLogin() {
 
   .auth-shell__intro,
   .auth-shell__form {
-    padding: 18px;
+    padding: 14px;
   }
 
   .auth-shell__intro h1 {
-    font-size: 2rem;
-  }
-
-  .auth-shell__intro p {
-    font-size: 0.95rem;
+    font-size: 1.36rem;
   }
 
   .auth-shell__form-header h2 {

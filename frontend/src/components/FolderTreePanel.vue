@@ -375,7 +375,7 @@ function handleNodeCollapse(data: FolderNode) {
 
 @media (max-width: 640px) {
   .folder-panel {
-    padding: 14px;
+    padding: 10px;
   }
 
   .folder-panel__actions {
@@ -393,13 +393,13 @@ function handleNodeCollapse(data: FolderNode) {
   }
 
   .folder-panel__tree {
-    max-height: min(28vh, 220px);
+    max-height: min(24vh, 190px);
   }
 }
 
 @media (max-width: 420px) {
   .folder-panel {
-    padding: 14px;
+    padding: 10px;
   }
 
   .folder-panel__actions {

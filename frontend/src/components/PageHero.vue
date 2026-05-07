@@ -78,12 +78,12 @@ withDefaults(
 
 @media (max-width: 640px) {
   .page-hero {
-    gap: 12px;
-    padding: 16px;
+    gap: 10px;
+    padding: 12px;
   }
 
   .page-hero__title {
-    font-size: clamp(1.48rem, 7vw, 2rem);
+    font-size: clamp(1.32rem, 6vw, 1.78rem);
   }
 
   .page-hero__description {
@@ -107,15 +107,15 @@ withDefaults(
 
 @media (max-width: 420px) {
   .page-hero {
-    padding: 14px;
+    padding: 10px;
   }
 
   .page-hero__actions :deep(.el-button) {
-    flex-basis: 100%;
+    flex: 1 1 120px;
   }
 
   .page-hero__actions :slotted(.el-button) {
-    flex-basis: 100%;
+    flex: 1 1 120px;
   }
 }
 </style>

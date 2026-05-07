@@ -321,8 +321,8 @@ onBeforeUnmount(() => {
 
 @media (max-width: 640px) {
   .editor-shell__host :deep(.vditor) {
-    height: min(68dvh, 620px) !important;
-    min-height: 460px !important;
+    height: min(58dvh, 520px) !important;
+    min-height: 360px !important;
   }
 
   .editor-shell__host :deep(.vditor-toolbar) {
@@ -337,8 +337,8 @@ onBeforeUnmount(() => {
 
 @media (max-width: 420px) {
   .editor-shell__host :deep(.vditor) {
-    height: min(66dvh, 560px) !important;
-    min-height: 420px !important;
+    height: min(56dvh, 480px) !important;
+    min-height: 330px !important;
   }
 }
 </style>

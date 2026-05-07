@@ -149,9 +149,9 @@ watch(
       <header class="share-page__hero panel">
         <div>
           <span class="section-kicker">Shared Note</span>
-          <h1>{{ note?.title || '查看别人分享的笔记' }}</h1>
+          <h1>{{ note?.title || '打开分享' }}</h1>
           <p>
-            不用再去浏览器地址栏手动输入。把别人发来的完整分享链接、/share/xxx 路径或分享码粘贴到下面，就能在这里查看内容。
+            粘贴别人发来的完整链接、/share/xxx 路径或分享码，即可查看内容。
           </p>
         </div>
         <el-button plain @click="goHome">
@@ -162,7 +162,7 @@ watch(
       <section class="share-page__opener panel">
         <div class="share-page__opener-copy">
           <span class="section-kicker">Open Share</span>
-          <strong>粘贴分享链接或分享码</strong>
+          <strong>输入后按回车或点击查看</strong>
           <p>支持完整链接、局域网/ngrok 链接、/share/xxx 路径，也支持只输入最后那段分享码。</p>
         </div>
 
@@ -399,27 +399,27 @@ watch(
   }
 
   .share-page__input-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 }
 
 @media (max-width: 420px) {
   .share-page {
-    padding: 10px;
+    padding: 8px;
   }
 
   .share-page__container {
-    gap: 16px;
+    gap: 10px;
   }
 
   .share-page__hero,
   .share-page__opener,
   .share-page__content {
-    padding: 16px;
+    padding: 10px;
   }
 
   .share-page__hero h1 {
-    font-size: 1.78rem;
+    font-size: 1.46rem;
     line-height: 1.16;
   }
 
@@ -429,6 +429,24 @@ watch(
   .share-page__locked p,
   .share-page__hint {
     line-height: 1.65;
+  }
+
+  .share-page__hero p,
+  .share-page__opener-copy p,
+  .share-page__current-link span {
+    display: none;
+  }
+
+  .share-page__opener-copy strong {
+    font-size: 0.98rem;
+  }
+
+  .share-page__input-row {
+    gap: 6px;
+  }
+
+  .share-page__input-row :deep(.el-button) {
+    padding-inline: 10px;
   }
 
   .share-page__article {

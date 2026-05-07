@@ -2,7 +2,6 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
-import PageHero from '@/components/PageHero.vue'
 import { uploadAttachment } from '@/api/attachment'
 import { importDocumentsAsNotes, importMarkdownFiles, type ImportableFile } from '@/api/import'
 import { useWorkspaceStore } from '@/stores/workspace'
@@ -507,18 +506,27 @@ function formatBytes(bytes: number) {
 
 <template>
   <div class="import-center page-shell">
-    <PageHero
-      kicker="Import Center"
-      title="导入中心"
-      :description="pageDescription"
-    >
-      <template #actions>
+    <section class="import-command panel">
+      <div class="import-command__copy">
+        <span class="section-kicker">Import Center</span>
+        <h2>导入中心</h2>
+        <p>{{ pageDescription }}</p>
+      </div>
+
+      <div class="import-command__actions">
         <el-button type="primary" :loading="importing" :disabled="!canImport" @click="submitImport">
           {{ importButtonText }}
         </el-button>
-        <el-button plain @click="clearSelection">清空选择</el-button>
-      </template>
-    </PageHero>
+        <el-button plain @click="triggerPicker(mode)">选择文件</el-button>
+        <el-button plain @click="clearSelection">清空</el-button>
+      </div>
+
+      <div class="import-command__steps" aria-label="导入步骤">
+        <span :class="{ 'is-active': true }">1. 选择来源</span>
+        <span :class="{ 'is-active': markdownFiles.length || attachmentFiles.length }">2. 确认文件</span>
+        <span :class="{ 'is-active': canImport }">3. 开始导入</span>
+      </div>
+    </section>
 
     <input
       ref="directoryInputRef"
@@ -768,6 +776,61 @@ function formatBytes(bytes: number) {
 
 .import-center__input {
   display: none;
+}
+
+.import-command {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 16px;
+  background:
+    radial-gradient(circle at top right, rgba(54, 92, 75, 0.12), transparent 32%),
+    linear-gradient(135deg, rgba(255, 252, 247, 0.96), rgba(247, 241, 232, 0.88));
+}
+
+.import-command__copy h2 {
+  margin: 4px 0 6px;
+  font-family: var(--header-font);
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+}
+
+.import-command__copy p {
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+.import-command__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.import-command__steps {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  gap: 8px;
+}
+
+.import-command__steps span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid rgba(54, 92, 75, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.66);
+  color: var(--text-soft);
+  font-size: 0.84rem;
+}
+
+.import-command__steps span.is-active {
+  border-color: rgba(54, 92, 75, 0.22);
+  background: rgba(54, 92, 75, 0.1);
+  color: #365c4b;
 }
 
 .import-center__modes {
@@ -1117,6 +1180,14 @@ function formatBytes(bytes: number) {
 }
 
 @media (max-width: 1100px) {
+  .import-command {
+    grid-template-columns: 1fr;
+  }
+
+  .import-command__actions {
+    justify-content: flex-start;
+  }
+
   .import-center__workspace {
     grid-template-columns: 1fr;
   }
@@ -1131,7 +1202,28 @@ function formatBytes(bytes: number) {
 
 @media (max-width: 640px) {
   .import-center {
-    gap: 16px;
+    gap: 10px;
+  }
+
+  .import-command {
+    padding: 12px;
+  }
+
+  .import-command__copy p {
+    display: none;
+  }
+
+  .import-command__actions {
+    align-items: stretch;
+  }
+
+  .import-command__actions :deep(.el-button) {
+    flex: 1 1 112px;
+    min-width: 0;
+  }
+
+  .import-command__steps {
+    display: none;
   }
 
   .import-center__modes {
@@ -1139,11 +1231,17 @@ function formatBytes(bytes: number) {
   }
 
   .import-mode-card {
-    flex: 0 0 154px;
+    flex: 0 0 118px;
+    gap: 3px;
+    min-height: 0;
   }
 
   .import-mode-card p,
   .import-dropzone__copy p {
+    display: none;
+  }
+
+  .import-mode-card em {
     display: none;
   }
 
@@ -1152,12 +1250,17 @@ function formatBytes(bytes: number) {
   .import-settings,
   .import-preview,
   .import-result {
-    padding: 16px;
-    border-radius: 20px;
+    padding: 12px;
+    border-radius: 18px;
   }
 
   .import-dropzone {
     min-height: 0;
+  }
+
+  .import-dropzone__copy h2 {
+    margin: 0;
+    font-size: 1.16rem;
   }
 
   .import-dropzone__stats {
@@ -1177,14 +1280,21 @@ function formatBytes(bytes: number) {
 
   .import-dropzone__actions,
   .import-result__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: stretch;
+    gap: 8px;
   }
 
   .import-dropzone__actions :deep(.el-button),
   .import-settings :deep(.el-button),
   .import-result__actions :deep(.el-button) {
-    flex: 1 1 140px;
+    flex: 1 1 0;
     min-width: 0;
+  }
+
+  .import-dropzone__actions :deep(.el-button:first-child) {
+    grid-column: 1 / -1;
   }
 
   .import-dropzone__stats article {
@@ -1203,7 +1313,7 @@ function formatBytes(bytes: number) {
   .import-settings,
   .import-preview,
   .import-result {
-    padding: 14px;
+    padding: 10px;
   }
 
   .import-dropzone__actions :deep(.el-button),

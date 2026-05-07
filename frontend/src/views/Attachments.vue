@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import PageHero from '@/components/PageHero.vue'
 import { deleteAttachment, getAttachments, uploadAttachment } from '@/api/attachment'
 import type { AttachmentItem } from '@/types'
 import {
@@ -157,12 +156,14 @@ async function deleteUnusedAttachment(attachment: AttachmentItem) {
 
 <template>
   <div class="attachment-center page-shell">
-    <PageHero
-      kicker="Attachment Center"
-      title="附件中心"
-      :description="pageDescription"
-    >
-      <template #actions>
+    <section class="attachment-command panel">
+      <div class="attachment-command__copy">
+        <span class="section-kicker">Attachment Center</span>
+        <h2>附件中心</h2>
+        <p>{{ pageDescription }}</p>
+      </div>
+
+      <div class="attachment-command__actions">
         <input
           ref="fileInputRef"
           class="attachment-center__file-input"
@@ -172,26 +173,14 @@ async function deleteUnusedAttachment(attachment: AttachmentItem) {
         />
         <el-button type="primary" :loading="uploading" @click="triggerUpload">上传附件</el-button>
         <el-button plain :loading="loading" @click="loadAttachments">刷新</el-button>
-      </template>
-    </PageHero>
+      </div>
 
-    <section class="attachment-center__summary">
-      <article>
-        <span>当前附件</span>
-        <strong>{{ attachments.length }}</strong>
-      </article>
-      <article>
-        <span>已引用</span>
-        <strong>{{ usedCount }}</strong>
-      </article>
-      <article class="attachment-center__summary-card--alert">
-        <span>未使用</span>
-        <strong>{{ unusedCount }}</strong>
-      </article>
-      <article>
-        <span>占用空间</span>
-        <strong>{{ formatFileSize(totalSize) }}</strong>
-      </article>
+      <div class="attachment-command__meta" aria-label="附件状态">
+        <span>全部 {{ attachments.length }}</span>
+        <span>已引用 {{ usedCount }}</span>
+        <span :class="{ 'is-alert': unusedCount > 0 }">未使用 {{ unusedCount }}</span>
+        <span>{{ formatFileSize(totalSize) }}</span>
+      </div>
     </section>
 
     <section class="attachment-center__filters panel">
@@ -273,6 +262,61 @@ async function deleteUnusedAttachment(attachment: AttachmentItem) {
 
 .attachment-center__file-input {
   display: none;
+}
+
+.attachment-command {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 16px;
+  background:
+    radial-gradient(circle at top right, rgba(54, 92, 75, 0.12), transparent 32%),
+    linear-gradient(135deg, rgba(255, 252, 247, 0.96), rgba(247, 241, 232, 0.88));
+}
+
+.attachment-command__copy h2 {
+  margin: 4px 0 6px;
+  font-family: var(--header-font);
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+}
+
+.attachment-command__copy p {
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+.attachment-command__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.attachment-command__meta {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  gap: 8px;
+}
+
+.attachment-command__meta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid rgba(54, 92, 75, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.66);
+  color: #365c4b;
+  font-size: 0.84rem;
+}
+
+.attachment-command__meta span.is-alert {
+  border-color: rgba(184, 92, 56, 0.2);
+  background: rgba(184, 92, 56, 0.1);
+  color: #8d4529;
 }
 
 .attachment-center__summary {
@@ -436,6 +480,14 @@ async function deleteUnusedAttachment(attachment: AttachmentItem) {
 }
 
 @media (max-width: 980px) {
+  .attachment-command {
+    grid-template-columns: 1fr;
+  }
+
+  .attachment-command__actions {
+    justify-content: flex-start;
+  }
+
   .attachment-center__summary,
   .attachment-center__filters {
     grid-template-columns: 1fr;
@@ -444,29 +496,59 @@ async function deleteUnusedAttachment(attachment: AttachmentItem) {
 
 @media (max-width: 640px) {
   .attachment-center {
-    gap: 16px;
-  }
-
-  .attachment-center__summary {
-    display: flex;
     gap: 10px;
-    overflow-x: auto;
-    scrollbar-width: none;
   }
 
-  .attachment-center__summary::-webkit-scrollbar {
+  .attachment-command {
+    padding: 12px;
+  }
+
+  .attachment-command__copy p {
     display: none;
+  }
+
+  .attachment-command__actions {
+    align-items: stretch;
+  }
+
+  .attachment-command__actions :deep(.el-button) {
+    flex: 1 1 112px;
+    min-width: 0;
   }
 
   .attachment-center__summary article,
   .attachment-center__filters,
   .attachment-card {
-    padding: 12px;
-    border-radius: 18px;
+    padding: 10px;
+    border-radius: 16px;
   }
 
   .attachment-center__summary article {
-    flex: 0 0 132px;
+    flex: 0 0 118px;
+  }
+
+  .attachment-center__filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .attachment-center__filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .attachment-center__filters :deep(.el-segmented) {
+    flex: 0 0 auto;
+  }
+
+  .attachment-center__filters :deep(.el-input) {
+    flex: 0 0 min(210px, 58vw);
+  }
+
+  .attachment-center__filters :deep(.el-switch) {
+    flex: 0 0 auto;
   }
 
   .attachment-center__summary strong {
@@ -478,9 +560,19 @@ async function deleteUnusedAttachment(attachment: AttachmentItem) {
     gap: 10px;
   }
 
+  .attachment-card {
+    grid-template-columns: 76px minmax(0, 1fr);
+    align-items: center;
+  }
+
   .attachment-card__preview {
-    height: 108px;
-    border-radius: 18px;
+    width: 76px;
+    height: 76px;
+    border-radius: 16px;
+  }
+
+  .attachment-card__actions {
+    grid-column: 1 / -1;
   }
 
   .attachment-card__actions {
@@ -497,7 +589,7 @@ async function deleteUnusedAttachment(attachment: AttachmentItem) {
   .attachment-center__summary article,
   .attachment-center__filters,
   .attachment-card {
-    padding: 14px;
+    padding: 10px;
   }
 
   .attachment-card__actions :deep(.el-button) {

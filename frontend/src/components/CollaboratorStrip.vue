@@ -21,6 +21,7 @@ const stripState = ref<StripState>(savedState === 'expanded' || savedState === '
 const stripRef = ref<HTMLElement | null>(null)
 const position = ref<StripPosition | null>(readSavedPosition())
 let dragStart: {
+  pointerId: number
   pointerX: number
   pointerY: number
   startX: number
@@ -181,18 +182,22 @@ function startDrag(event: PointerEvent) {
 
   const currentPosition = ensurePosition()
   dragStart = {
+    pointerId: event.pointerId,
     pointerX: event.clientX,
     pointerY: event.clientY,
     startX: currentPosition.x,
     startY: currentPosition.y
   }
   hasDragged = false
+  const currentTarget = event.currentTarget as HTMLElement | null
+  currentTarget?.setPointerCapture?.(event.pointerId)
   document.addEventListener('pointermove', handlePointerMove)
   document.addEventListener('pointerup', stopDrag, { once: true })
+  document.addEventListener('pointercancel', stopDrag, { once: true })
 }
 
 function handlePointerMove(event: PointerEvent) {
-  if (!dragStart) {
+  if (!dragStart || event.pointerId !== dragStart.pointerId) {
     return
   }
 
@@ -201,6 +206,7 @@ function handlePointerMove(event: PointerEvent) {
 
   if (Math.abs(deltaX) + Math.abs(deltaY) > 4) {
     hasDragged = true
+    event.preventDefault()
   }
 
   position.value = clampPosition(dragStart.startX + deltaX, dragStart.startY + deltaY)
@@ -216,6 +222,8 @@ function stopDrag() {
 
   dragStart = null
   document.removeEventListener('pointermove', handlePointerMove)
+  document.removeEventListener('pointerup', stopDrag)
+  document.removeEventListener('pointercancel', stopDrag)
 }
 
 function handleMiniClick() {
@@ -251,6 +259,8 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', handleViewportResize)
   window.visualViewport?.removeEventListener('resize', handleViewportResize)
   document.removeEventListener('pointermove', handlePointerMove)
+  document.removeEventListener('pointerup', stopDrag)
+  document.removeEventListener('pointercancel', stopDrag)
 })
 </script>
 
@@ -260,6 +270,7 @@ onBeforeUnmount(() => {
     ref="stripRef"
     type="button"
     class="collaborator-strip-launcher"
+    :class="{ 'is-positioned': position }"
     :style="floatingStyle"
     @pointerdown="startDrag"
     @click="handleLauncherClick"
@@ -272,6 +283,7 @@ onBeforeUnmount(() => {
     ref="stripRef"
     type="button"
     class="collaborator-strip-mini"
+    :class="{ 'is-positioned': position }"
     :style="floatingStyle"
     @pointerdown="startDrag"
     @click="handleMiniClick"
@@ -294,7 +306,13 @@ onBeforeUnmount(() => {
     <span class="collaborator-strip-mini__action">展开</span>
   </button>
 
-  <div v-else-if="sortedCollaborators.length" ref="stripRef" class="collaborator-strip panel" :style="floatingStyle">
+  <div
+    v-else-if="sortedCollaborators.length"
+    ref="stripRef"
+    class="collaborator-strip panel"
+    :class="{ 'is-positioned': position }"
+    :style="floatingStyle"
+  >
     <div class="collaborator-strip__header" @pointerdown="startDrag">
       <div class="collaborator-strip__title">
         <span class="section-kicker">Realtime</span>
@@ -333,6 +351,10 @@ onBeforeUnmount(() => {
   background: rgba(255, 250, 241, 0.94);
   border-color: rgba(184, 92, 56, 0.18);
   box-shadow: 0 18px 44px rgba(54, 92, 75, 0.14);
+}
+
+.collaborator-strip.is-positioned {
+  width: min(360px, calc(100vw - 32px));
 }
 
 .collaborator-strip__header {
@@ -439,6 +461,10 @@ onBeforeUnmount(() => {
   touch-action: none;
 }
 
+.collaborator-strip-mini.is-positioned {
+  width: min(300px, calc(100vw - 32px));
+}
+
 .collaborator-strip-mini__avatars {
   display: flex;
   align-items: center;
@@ -534,27 +560,50 @@ onBeforeUnmount(() => {
 @media (max-width: 640px) {
   .collaborator-strip,
   .collaborator-strip-mini {
-    bottom: calc(88px + env(safe-area-inset-bottom));
+    bottom: calc(76px + env(safe-area-inset-bottom));
   }
 
   .collaborator-strip-launcher {
-    bottom: calc(88px + env(safe-area-inset-bottom));
+    bottom: calc(76px + env(safe-area-inset-bottom));
   }
 }
 
 @media (max-width: 520px) {
-  .collaborator-strip,
-  .collaborator-strip-mini {
-    left: 10px !important;
-    right: 10px !important;
-    top: auto !important;
-    bottom: calc(88px + env(safe-area-inset-bottom)) !important;
+  .collaborator-strip {
+    left: 10px;
+    right: 10px;
+    top: auto;
+    bottom: calc(76px + env(safe-area-inset-bottom));
     width: auto;
     max-width: calc(100vw - 20px);
   }
 
+  .collaborator-strip.is-positioned {
+    right: auto;
+    bottom: auto;
+    width: min(320px, calc(100vw - 20px));
+  }
+
+  .collaborator-strip-mini {
+    left: auto;
+    right: 10px;
+    top: auto;
+    bottom: calc(76px + env(safe-area-inset-bottom));
+    width: min(178px, calc(100vw - 20px));
+    max-width: calc(100vw - 20px);
+    min-height: 46px;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  .collaborator-strip-mini.is-positioned,
+  .collaborator-strip-launcher.is-positioned {
+    right: auto;
+    bottom: auto;
+  }
+
   .collaborator-strip {
-    padding: 14px;
+    padding: 12px;
   }
 
   .collaborator-strip__controls {
@@ -572,7 +621,24 @@ onBeforeUnmount(() => {
 
   .collaborator-strip-mini {
     grid-template-columns: auto minmax(0, 1fr);
-    padding: 10px 12px;
+  }
+
+  .collaborator-strip-mini__avatars {
+    min-width: 30px;
+  }
+
+  .collaborator-strip-mini__avatar {
+    width: 26px !important;
+    height: 26px !important;
+    font-size: 0.72rem;
+  }
+
+  .collaborator-strip-mini__copy strong {
+    font-size: 0.82rem;
+  }
+
+  .collaborator-strip-mini__copy small {
+    display: none;
   }
 
   .collaborator-strip-mini__action {
@@ -580,10 +646,10 @@ onBeforeUnmount(() => {
   }
 
   .collaborator-strip-launcher {
-    right: 10px !important;
-    bottom: calc(88px + env(safe-area-inset-bottom)) !important;
-    top: auto !important;
-    left: auto !important;
+    right: 10px;
+    bottom: calc(76px + env(safe-area-inset-bottom));
+    top: auto;
+    left: auto;
   }
 }
 </style>

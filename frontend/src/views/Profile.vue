@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import PageHero from '@/components/PageHero.vue'
 import CollapsiblePanel from '@/components/CollapsiblePanel.vue'
 import { uploadAvatar } from '@/api/user'
 import { useAuthStore } from '@/stores/auth'
@@ -144,15 +143,14 @@ async function saveProfile() {
 
 <template>
   <div class="profile-view page-shell">
-    <PageHero
-      kicker="Profile"
-      title="个人中心"
-      description="维护头像、昵称、邮箱等资料，让协作时的身份展示更完整、更清晰。"
-    >
-      <template #actions>
-        <el-button type="primary" :loading="saving" @click="saveProfile">保存资料</el-button>
-      </template>
-    </PageHero>
+    <section class="profile-command panel">
+      <div class="profile-command__copy">
+        <span class="section-kicker">Profile</span>
+        <h2>个人中心</h2>
+        <p>优先维护头像、昵称和邮箱；保存后会同步到协作者展示。</p>
+      </div>
+      <el-button type="primary" :loading="saving" @click="saveProfile">保存资料</el-button>
+    </section>
 
     <div class="profile-view__layout">
       <CollapsiblePanel
@@ -259,6 +257,29 @@ async function saveProfile() {
 </template>
 
 <style scoped>
+.profile-command {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  background:
+    radial-gradient(circle at top right, rgba(54, 92, 75, 0.12), transparent 32%),
+    linear-gradient(135deg, rgba(255, 252, 247, 0.96), rgba(247, 241, 232, 0.88));
+}
+
+.profile-command__copy h2 {
+  margin: 4px 0 6px;
+  font-family: var(--header-font);
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+}
+
+.profile-command__copy p {
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
 .profile-view__layout {
   display: grid;
   gap: 16px;
@@ -410,10 +431,22 @@ async function saveProfile() {
 }
 
 @media (max-width: 720px) {
-  .profile-editor__header,
-  .profile-editor__section-head {
+  .profile-command {
+    align-items: stretch;
     flex-direction: column;
-    align-items: flex-start;
+    padding: 12px;
+  }
+
+  .profile-command__copy p {
+    display: none;
+  }
+
+  .profile-editor__header {
+    align-items: center;
+  }
+
+  .profile-editor__section-head {
+    align-items: center;
   }
 
   .profile-editor__presets {
@@ -425,12 +458,24 @@ async function saveProfile() {
   .profile-view__layout,
   .profile-view__aside,
   .profile-editor__body {
-    gap: 16px;
+    gap: 12px;
   }
 
   .profile-editor,
   .profile-summary {
-    padding: 16px;
+    padding: 12px;
+  }
+
+  .profile-editor__avatar {
+    width: 64px !important;
+    height: 64px !important;
+    font-size: 1rem !important;
+  }
+
+  .profile-editor__identity .section-kicker,
+  .profile-editor__section-head small,
+  .profile-editor__preset span {
+    display: none;
   }
 
   .profile-editor__header-actions {
@@ -444,14 +489,24 @@ async function saveProfile() {
   }
 
   .profile-editor__presets {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profile-editor__preset {
+    gap: 6px;
+    padding: 9px;
+  }
+
+  .profile-editor__preset :deep(.el-avatar) {
+    width: 42px !important;
+    height: 42px !important;
   }
 }
 
 @media (max-width: 420px) {
   .profile-editor,
   .profile-summary {
-    padding: 14px;
+    padding: 10px;
   }
 }
 </style>

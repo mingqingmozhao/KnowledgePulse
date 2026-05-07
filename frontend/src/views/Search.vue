@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import PageHero from '@/components/PageHero.vue'
 import CollapsiblePanel from '@/components/CollapsiblePanel.vue'
 import TagCloudPanel from '@/components/TagCloudPanel.vue'
 import { useNoteWorkspaceStore } from '@/stores/noteWorkspace'
@@ -123,22 +122,22 @@ function continueWorkspace() {
 
 <template>
   <div class="search-view page-shell">
-    <PageHero
-      kicker="Search"
-      title="全文搜索与主题检索"
-      description="同时覆盖标题、正文和标签，让你更快从大量笔记中定位到真正想找的内容。"
-    >
-      <template #actions>
-        <form class="search-view__toolbar" @submit.prevent="submitSearch">
-          <input
-            v-model="searchInput"
-            type="search"
-            placeholder="输入关键词，例如：Spring Security、图谱、协作权限"
-          />
-          <button type="submit">搜索</button>
-        </form>
-      </template>
-    </PageHero>
+    <section class="search-command panel">
+      <div class="search-command__copy">
+        <span class="section-kicker">Search</span>
+        <h2>搜索笔记</h2>
+        <p>{{ queryLabel }}，共 {{ workspaceStore.searchResults.length }} 条结果。</p>
+      </div>
+
+      <form class="search-view__toolbar" @submit.prevent="submitSearch">
+        <input
+          v-model="searchInput"
+          type="search"
+          placeholder="输入关键词，例如：Spring Security、图谱、协作权限"
+        />
+        <button type="submit">搜索</button>
+      </form>
+    </section>
 
     <div class="search-view__layout">
       <CollapsiblePanel
@@ -203,6 +202,29 @@ function continueWorkspace() {
 </template>
 
 <style scoped>
+.search-command {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(320px, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 16px;
+  background:
+    radial-gradient(circle at top right, rgba(54, 92, 75, 0.12), transparent 32%),
+    linear-gradient(135deg, rgba(255, 252, 247, 0.96), rgba(247, 241, 232, 0.88));
+}
+
+.search-command__copy h2 {
+  margin: 4px 0 6px;
+  font-family: var(--header-font);
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+}
+
+.search-command__copy p {
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
 .search-view__toolbar {
   display: flex;
   align-items: center;
@@ -317,6 +339,10 @@ function continueWorkspace() {
 }
 
 @media (max-width: 1180px) {
+  .search-command {
+    grid-template-columns: 1fr;
+  }
+
   .search-view__layout {
     grid-template-columns: 1fr;
   }
@@ -335,25 +361,31 @@ function continueWorkspace() {
 }
 
 @media (max-width: 640px) {
+  .search-command {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .search-command__copy p {
+    display: none;
+  }
+
   .search-view__layout,
   .search-view__result-body,
   .search-view__list,
   .search-view__aside {
-    gap: 14px;
+    gap: 10px;
   }
 
   .search-view__toolbar {
-    position: sticky;
-    top: 72px;
-    z-index: 12;
     align-items: center;
     flex-direction: row;
-    padding: 10px;
-    border-radius: 18px;
+    padding: 6px;
+    border-radius: 16px;
   }
 
   .search-view__toolbar input {
-    min-height: 42px;
+    min-height: 38px;
   }
 
   .search-view__toolbar button {
@@ -363,8 +395,8 @@ function continueWorkspace() {
   .search-view__result,
   .search-view__item,
   .search-view__workspace-card {
-    padding: 16px;
-    border-radius: 18px;
+    padding: 12px;
+    border-radius: 16px;
   }
 
   .search-view__item p,
@@ -372,7 +404,11 @@ function continueWorkspace() {
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 1;
+  }
+
+  .search-view__item-status {
+    display: none;
   }
 
   .search-view__item-actions :deep(.el-button) {
@@ -384,7 +420,7 @@ function continueWorkspace() {
   .search-view__result,
   .search-view__item,
   .search-view__workspace-card {
-    padding: 14px;
+    padding: 10px;
   }
 
   .search-view__toolbar {

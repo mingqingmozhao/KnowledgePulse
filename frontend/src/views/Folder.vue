@@ -2,7 +2,6 @@
 import { computed, onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
-import PageHero from '@/components/PageHero.vue'
 import CollapsiblePanel from '@/components/CollapsiblePanel.vue'
 import FolderTreePanel from '@/components/FolderTreePanel.vue'
 import TagCloudPanel from '@/components/TagCloudPanel.vue'
@@ -16,8 +15,7 @@ const workspaceStore = useWorkspaceStore()
 
 const activePane = ref<'notes' | 'favorites' | 'trash'>('notes')
 const favoriteSubmittingId = ref<number | null>(null)
-const compactFolderView = typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches
-const folderTreeInitiallyOpen = !compactFolderView
+const folderTreeInitiallyOpen = false
 
 onMounted(() => {
   if (!workspaceStore.notes.length || !workspaceStore.folders.length) {
@@ -34,6 +32,28 @@ const currentFolderName = computed(() =>
 const notes = computed(() => workspaceStore.visibleNotes)
 const favoriteNotes = computed(() => workspaceStore.favoriteNotes)
 const trashNotes = computed(() => workspaceStore.visibleTrashNotes)
+const activePaneSummary = computed(() => {
+  if (activePane.value === 'favorites') {
+    return favoriteNotes.value.length ? `已收藏 ${favoriteNotes.value.length} 篇常用笔记。` : '收藏区为空，可以先从笔记卡片里收藏常用内容。'
+  }
+
+  if (activePane.value === 'trash') {
+    return trashNotes.value.length ? `回收站有 ${trashNotes.value.length} 篇可恢复笔记。` : '回收站为空，不需要处理。'
+  }
+
+  return notes.value.length ? `当前范围内有 ${notes.value.length} 篇笔记。` : '当前范围还没有笔记，可以先新建草稿。'
+})
+const activePaneTitle = computed(() => {
+  if (activePane.value === 'favorites') {
+    return '我的收藏'
+  }
+
+  if (activePane.value === 'trash') {
+    return '回收站'
+  }
+
+  return '笔记列表'
+})
 
 function buildExcerpt(content: string) {
   const normalized = content.replace(/[#>*`~-]/g, ' ').replace(/\n+/g, ' ').trim()
@@ -174,17 +194,34 @@ function searchByTag(tag: string) {
 
 <template>
   <div class="folder-view page-shell">
-    <PageHero
-      kicker="Explorer"
-      title="文件树与笔记库"
-      description="在这里统一管理目录、收藏与回收站。现在从这里新建笔记，会直接进入草稿工作区标签，不会先生成空白占位笔记。"
-    >
-      <template #actions>
+    <section class="folder-focus panel">
+      <div class="folder-focus__copy">
+        <span class="section-kicker">Notebook</span>
+        <h2>{{ currentFolderName }}</h2>
+        <p>{{ activePaneSummary }}</p>
+      </div>
+
+      <div class="folder-focus__actions">
         <el-button type="primary" @click="createNote">新建笔记</el-button>
-        <el-button plain @click="openImportCenter">导入 Markdown</el-button>
-        <el-button plain @click="refreshExplorer">刷新内容</el-button>
-      </template>
-    </PageHero>
+        <el-button plain @click="openImportCenter">导入资料</el-button>
+        <el-button plain @click="refreshExplorer">刷新</el-button>
+      </div>
+
+      <div class="folder-focus__stats" aria-label="笔记状态">
+        <button type="button" :class="{ 'is-active': activePane === 'notes' }" @click="activePane = 'notes'">
+          <strong>{{ notes.length }}</strong>
+          <span>笔记</span>
+        </button>
+        <button type="button" :class="{ 'is-active': activePane === 'favorites' }" @click="activePane = 'favorites'">
+          <strong>{{ favoriteNotes.length }}</strong>
+          <span>收藏</span>
+        </button>
+        <button type="button" :class="{ 'is-active': activePane === 'trash' }" @click="activePane = 'trash'">
+          <strong>{{ trashNotes.length }}</strong>
+          <span>回收站</span>
+        </button>
+      </div>
+    </section>
 
     <div class="folder-view__layout">
       <aside class="folder-view__aside">
@@ -205,7 +242,7 @@ function searchByTag(tag: string) {
       <CollapsiblePanel
         class="folder-view__content"
         kicker="Notebook"
-        :title="currentFolderName"
+        :title="activePaneTitle"
         :meta="`正常笔记 ${notes.length} 篇 / 收藏 ${favoriteNotes.length} 篇 / 回收站 ${trashNotes.length} 篇`"
         body-class="folder-view__content-body"
         :initially-open="true"
@@ -332,6 +369,78 @@ function searchByTag(tag: string) {
 </template>
 
 <style scoped>
+.folder-focus {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 16px;
+  background:
+    radial-gradient(circle at top right, rgba(54, 92, 75, 0.12), transparent 32%),
+    linear-gradient(135deg, rgba(255, 252, 247, 0.96), rgba(248, 241, 232, 0.88));
+}
+
+.folder-focus__copy {
+  min-width: 0;
+}
+
+.folder-focus__copy h2 {
+  overflow: hidden;
+  margin: 4px 0 0;
+  font-family: var(--header-font);
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-focus__copy p {
+  margin: 6px 0 0;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+.folder-focus__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.folder-focus__stats {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.folder-focus__stats button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(184, 92, 56, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.56);
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.folder-focus__stats button:hover,
+.folder-focus__stats button.is-active {
+  border-color: rgba(141, 69, 41, 0.32);
+  background: rgba(184, 92, 56, 0.09);
+  color: #8d4529;
+  transform: translateY(-1px);
+}
+
+.folder-focus__stats strong {
+  color: var(--text);
+  font-size: 1.1rem;
+}
+
 .folder-view__layout {
   display: grid;
   gap: 16px;
@@ -353,7 +462,7 @@ function searchByTag(tag: string) {
 }
 
 .folder-view__tabs :deep(.el-tabs__header) {
-  margin-bottom: 12px;
+  display: none;
 }
 
 .note-grid {
@@ -443,6 +552,14 @@ function searchByTag(tag: string) {
 }
 
 @media (max-width: 820px) {
+  .folder-focus {
+    grid-template-columns: 1fr;
+  }
+
+  .folder-focus__actions {
+    justify-content: flex-start;
+  }
+
   .note-grid {
     grid-template-columns: 1fr;
   }
@@ -456,6 +573,42 @@ function searchByTag(tag: string) {
 }
 
 @media (max-width: 640px) {
+  .folder-focus {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .folder-focus__copy p {
+    display: none;
+  }
+
+  .folder-focus__actions {
+    align-items: stretch;
+  }
+
+  .folder-focus__actions :deep(.el-button) {
+    flex: 1 1 112px;
+    min-width: 0;
+  }
+
+  .folder-focus__stats {
+    display: flex;
+    grid-template-columns: none;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+
+  .folder-focus__stats::-webkit-scrollbar {
+    display: none;
+  }
+
+  .folder-focus__stats button {
+    flex: 0 0 112px;
+    padding: 8px 10px;
+  }
+
   .folder-view__layout,
   .folder-view__aside {
     gap: 12px;
@@ -470,7 +623,7 @@ function searchByTag(tag: string) {
   }
 
   .folder-view__content {
-    padding: 12px;
+    padding: 10px;
   }
 
   .note-grid {
@@ -479,8 +632,26 @@ function searchByTag(tag: string) {
 
   .note-card {
     gap: 10px;
-    padding: 12px;
+    padding: 10px;
     border-radius: 16px;
+  }
+
+  .note-card p {
+    display: none;
+  }
+
+  .note-card__footer > small {
+    display: none;
+  }
+
+  .note-card__tags {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+
+  .note-card__tags::-webkit-scrollbar {
+    display: none;
   }
 
   .note-card__actions {
@@ -496,15 +667,15 @@ function searchByTag(tag: string) {
 
 @media (max-width: 420px) {
   .folder-view__content {
-    padding: 14px;
+    padding: 10px;
   }
 
   .note-card {
-    padding: 14px;
+    padding: 10px;
   }
 
   .note-card__actions :deep(.el-button) {
-    flex-basis: 100%;
+    flex: 1 1 96px;
   }
 }
 </style>

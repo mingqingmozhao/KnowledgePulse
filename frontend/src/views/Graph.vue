@@ -3,7 +3,6 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import type { EChartsOption } from 'echarts'
-import PageHero from '@/components/PageHero.vue'
 import EChartPanel from '@/components/EChartPanel.vue'
 import NoteSearchSelect from '@/components/NoteSearchSelect.vue'
 import { addRelation, getGlobalGraph, getGraphData } from '@/api/graph'
@@ -120,7 +119,7 @@ const graphColorFields: Array<{
 ]
 
 const panelState = reactive<Record<PanelKey, boolean>>({
-  scope: true,
+  scope: false,
   relation: false,
   color: false,
   legend: false
@@ -474,16 +473,24 @@ function continueWorkspace() {
 
 <template>
   <div class="graph-view page-shell">
-    <PageHero
-      kicker="Graph"
-      title="全局知识图谱"
-      description="从图谱上查看笔记之间的引用、扩展与相关关系，点击节点后可直接加入工作区继续编辑。"
-    >
-      <template #actions>
+    <section class="graph-command panel">
+      <div class="graph-command__copy">
+        <span class="section-kicker">Graph</span>
+        <h2>{{ focusedNote ? focusedNote.title : '全局知识图谱' }}</h2>
+        <p>先看关系画布；需要聚焦、添加关系或改配色时，再展开右侧工具。</p>
+      </div>
+
+      <div class="graph-command__actions">
         <el-button plain @click="loadGraph">刷新图谱</el-button>
         <el-button v-if="focusNoteId" type="primary" plain @click="openFocusedNote">打开聚焦笔记</el-button>
-      </template>
-    </PageHero>
+      </div>
+
+      <div class="graph-command__meta" aria-label="图谱状态">
+        <span>节点 {{ graphData.nodes.length }}</span>
+        <span>关系 {{ graphData.links.length }}</span>
+        <span>{{ focusedNote ? '已聚焦' : '全局视图' }}</span>
+      </div>
+    </section>
 
     <div class="graph-view__layout">
       <aside class="graph-view__aside">
@@ -714,6 +721,58 @@ function continueWorkspace() {
 </template>
 
 <style scoped>
+.graph-command {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 16px;
+  background:
+    radial-gradient(circle at top right, rgba(54, 92, 75, 0.12), transparent 32%),
+    linear-gradient(135deg, rgba(255, 252, 247, 0.96), rgba(247, 241, 232, 0.88));
+}
+
+.graph-command__copy h2 {
+  overflow: hidden;
+  margin: 4px 0 6px;
+  font-family: var(--header-font);
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.graph-command__copy p {
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+.graph-command__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.graph-command__meta {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  gap: 8px;
+}
+
+.graph-command__meta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid rgba(54, 92, 75, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.66);
+  color: #365c4b;
+  font-size: 0.84rem;
+}
+
 .graph-view__layout {
   display: grid;
   gap: 16px;
@@ -949,6 +1008,14 @@ function continueWorkspace() {
 }
 
 @media (max-width: 1180px) {
+  .graph-command {
+    grid-template-columns: 1fr;
+  }
+
+  .graph-command__actions {
+    justify-content: flex-start;
+  }
+
   .graph-view__layout {
     grid-template-columns: 1fr;
   }
@@ -962,9 +1029,26 @@ function continueWorkspace() {
 }
 
 @media (max-width: 640px) {
+  .graph-command {
+    padding: 10px;
+  }
+
+  .graph-command__copy p {
+    display: none;
+  }
+
+  .graph-command__actions {
+    align-items: stretch;
+  }
+
+  .graph-command__actions :deep(.el-button) {
+    flex: 1 1 120px;
+    min-width: 0;
+  }
+
   .graph-view__layout,
   .graph-view__aside {
-    gap: 16px;
+    gap: 12px;
   }
 
   .graph-view__canvas {
@@ -977,8 +1061,8 @@ function continueWorkspace() {
 
   .graph-panel,
   .graph-view__canvas {
-    padding: 16px;
-    border-radius: 20px;
+    padding: 12px;
+    border-radius: 18px;
   }
 
   .graph-panel__title-row,
@@ -1014,7 +1098,7 @@ function continueWorkspace() {
   }
 
   .graph-view__canvas :deep(.chart-shell__canvas) {
-    height: min(52dvh, 460px) !important;
+    height: min(46dvh, 420px) !important;
     min-height: 280px;
   }
 }
@@ -1022,12 +1106,12 @@ function continueWorkspace() {
 @media (max-width: 420px) {
   .graph-panel,
   .graph-view__canvas {
-    padding: 14px;
+    padding: 10px;
   }
 
   .graph-view__canvas :deep(.chart-shell__canvas) {
-    height: min(50dvh, 400px) !important;
-    min-height: 260px;
+    height: min(44dvh, 360px) !important;
+    min-height: 240px;
   }
 }
 </style>

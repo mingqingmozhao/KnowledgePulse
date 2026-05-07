@@ -220,6 +220,7 @@ async function submitRegister() {
 @media (max-width: 720px) {
   .register-shell {
     padding: 16px;
+    place-items: start center;
   }
 
   .register-shell__card {
@@ -233,19 +234,28 @@ async function submitRegister() {
 
 @media (max-width: 420px) {
   .register-shell {
-    padding: 10px;
+    padding: 8px;
   }
 
   .register-shell__card {
-    padding: 18px;
+    padding: 14px;
   }
 
   .register-shell__header h1 {
-    font-size: 1.9rem;
+    font-size: 1.66rem;
+  }
+
+  .register-shell__header p {
+    display: none;
+  }
+
+  .register-form {
+    margin-top: 16px;
   }
 
   .register-shell__footer {
     flex-wrap: wrap;
+    margin-top: 14px;
   }
 }
 </style>
